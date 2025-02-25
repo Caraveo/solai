@@ -49,6 +49,8 @@ find ~ -type f -size +100M
 Do you want to execute this command? [y/n]:
 ```
 
+![Sol Screenshot](screenshot.png)
+
 ## Usage Examples
 
 ```bash
