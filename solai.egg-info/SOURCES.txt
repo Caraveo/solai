@@ -1,0 +1,7 @@
+setup.py
+solai.egg-info/PKG-INFO
+solai.egg-info/SOURCES.txt
+solai.egg-info/dependency_links.txt
+solai.egg-info/entry_points.txt
+solai.egg-info/requires.txt
+solai.egg-info/top_level.txt
