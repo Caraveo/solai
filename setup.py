@@ -16,15 +16,15 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'sol=solai:main',
+            'sol=solai.app:main',
         ],
     },
     author="Your Name",
-    author_email="your.email@example.com",
+    author_email="jon@ziavision.com",
     description="A CLI assistant powered by OpenAI",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/solai",
+    url="https://github.com/caraveo/solai",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

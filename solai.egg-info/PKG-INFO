@@ -2,9 +2,9 @@ Metadata-Version: 2.2
 Name: solai
 Version: 0.1.0
 Summary: A CLI assistant powered by OpenAI
-Home-page: https://github.com/yourusername/solai
+Home-page: https://github.com/caraveo/solai
 Author: Your Name
-Author-email: your.email@example.com
+Author-email: jon@ziavision.com
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent

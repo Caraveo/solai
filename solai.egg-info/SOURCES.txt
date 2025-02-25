@@ -1,4 +1,6 @@
 setup.py
+solai/__init__.py
+solai/app.py
 solai.egg-info/PKG-INFO
 solai.egg-info/SOURCES.txt
 solai.egg-info/dependency_links.txt

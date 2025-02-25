@@ -1,2 +1,2 @@
 [console_scripts]
-sol = solai:main
+sol = solai.app:main
