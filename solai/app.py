@@ -52,12 +52,18 @@ def get_command_suggestion(client, query):
         messages=[
             {
                 "role": "system", 
-                "content": f"You are a CLI assistant for {os_type}. Provide only the exact command to run for {os_type}, nothing else. Ensure all commands are compatible with {os_type}."
+                "content": f"You are a CLI assistant for {os_type}. Return the command followed by '||' and a brief explanation of what it does. Format: 'command || explanation'. Ensure all commands are compatible with {os_type}."
             },
             {"role": "user", "content": query}
         ]
     )
-    return response.choices[0].message.content.strip()
+    result = response.choices[0].message.content.strip()
+    
+    # Split command and explanation
+    if '||' in result:
+        command, explanation = result.split('||')
+        return command.strip(), explanation.strip()
+    return result.strip(), ""
 
 @click.command()
 @click.argument('query', nargs=-1)
@@ -76,15 +82,17 @@ def main(query):
     
     try:
         # Get command suggestion
-        suggested_command = get_command_suggestion(client, full_query)
+        command, explanation = get_command_suggestion(client, full_query)
         
-        # Display suggestion
+        # Display suggestion with explanation
         console.print("\n[green]Suggested command:[/green]")
-        console.print(f"[yellow]{suggested_command}[/yellow]\n")
+        console.print(f"[yellow]{command}[/yellow]")
+        if explanation:
+            console.print(f"[blue]→ {explanation}[/blue]\n")
         
         # Ask for confirmation
         if Confirm.ask("Do you want to execute this command?"):
-            os.system(suggested_command)
+            os.system(command)
     except Exception as e:
         console.print(f"[red]Error: {str(e)}[/red]")
 

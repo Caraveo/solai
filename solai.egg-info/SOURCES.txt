@@ -1,3 +1,5 @@
+LICENSE
+README.md
 setup.py
 solai/__init__.py
 solai/app.py

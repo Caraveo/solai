@@ -1,36 +1,3 @@
-Metadata-Version: 2.2
-Name: solai
-Version: 0.1.0
-Summary: A CLI assistant powered by OpenAI
-Home-page: https://github.com/caraveo/solai
-Author: Jon Caraveo
-Author-email: jon@ziavision.com
-Keywords: cli,assistant,openai,gpt,command-line
-Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Operating System :: OS Independent
-Classifier: Development Status :: 4 - Beta
-Classifier: Intended Audience :: Developers
-Classifier: Topic :: System :: Systems Administration
-Classifier: Topic :: Utilities
-Requires-Python: >=3.6
-Description-Content-Type: text/markdown
-License-File: LICENSE
-Requires-Dist: click>=8.0.0
-Requires-Dist: python-dotenv>=1.0.0
-Requires-Dist: openai>=1.0.0
-Requires-Dist: rich>=10.0.0
-Dynamic: author
-Dynamic: author-email
-Dynamic: classifier
-Dynamic: description
-Dynamic: description-content-type
-Dynamic: home-page
-Dynamic: keywords
-Dynamic: requires-dist
-Dynamic: requires-python
-Dynamic: summary
-
 # Solai - Your Smart CLI Assistant
 
 Solai is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It uses OpenAI's GPT to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
