@@ -4,6 +4,7 @@ solai - Your CLI Assistant
 import os
 import sys
 import click
+import platform
 from openai import OpenAI
 from dotenv import load_dotenv
 from rich.console import Console
@@ -14,12 +15,24 @@ console = Console()
 def get_openai_key():
     """Get OpenAI key from user and save it"""
     console.print("[yellow]First time setup: OpenAI API Key required[/yellow]")
+    console.print("[blue]Get your API key from: https://platform.openai.com/api-keys[/blue]")
     api_key = click.prompt("Please enter your OpenAI API key", type=str)
     
     with open(os.path.expanduser('~/.solai.env'), 'w') as f:
         f.write(f"OPENAI_API_KEY={api_key}")
     
     return api_key
+
+def get_system_info():
+    """Get system information"""
+    system = platform.system().lower()
+    if system == 'darwin':
+        return 'macOS'
+    elif system == 'linux':
+        return 'Linux'
+    elif system == 'windows':
+        return 'Windows'
+    return system
 
 def load_config():
     """Load configuration"""
@@ -32,10 +45,15 @@ def load_config():
 
 def get_command_suggestion(client, query):
     """Get command suggestion from OpenAI"""
+    os_type = get_system_info()
+    
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are a CLI assistant. Provide only the exact command to run, nothing else."},
+            {
+                "role": "system", 
+                "content": f"You are a CLI assistant for {os_type}. Provide only the exact command to run for {os_type}, nothing else. Ensure all commands are compatible with {os_type}."
+            },
             {"role": "user", "content": query}
         ]
     )
