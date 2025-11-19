@@ -795,7 +795,8 @@ def get_command_suggestion(client, model, query):
 @click.command()
 @click.argument('query', nargs=-1, required=False)
 @click.option('--configure', '-c', is_flag=True, help='Configure solai settings')
-def main(query, configure):
+@click.option('--admin', '-a', is_flag=True, help='Run commands with sudo (administrative privileges)')
+def main(query, configure, admin):
     """CLI Assistant - Get command suggestions for your queries"""
     if configure:
         reconfigure()
@@ -873,19 +874,36 @@ def main(query, configure):
             return
         
         # Display commands to be executed
-        console.print(f"[green]Commands to Execute ({len(commands)}):[/green]")
+        if admin:
+            console.print(f"[green]Commands to Execute ({len(commands)}) [with sudo]:[/green]")
+        else:
+            console.print(f"[green]Commands to Execute ({len(commands)}):[/green]")
         for i, cmd in enumerate(commands, 1):
-            console.print(f"[yellow]{cmd}[/yellow]")
+            if admin:
+                # Show sudo prefix in display
+                display_cmd = f"sudo {cmd}" if not cmd.strip().startswith('sudo') else cmd
+                console.print(f"[yellow]{display_cmd}[/yellow]")
+            else:
+                console.print(f"[yellow]{cmd}[/yellow]")
         console.print()
         
         # Ask for confirmation
+        if admin:
+            console.print("[yellow]⚠️  Warning: Commands will run with sudo (administrative privileges)[/yellow]")
         if Confirm.ask("Do you want to execute these command(s)?"):
             for i, command in enumerate(commands, 1):
                 if len(commands) > 1:
                     console.print(f"\n[cyan]Executing command {i}/{len(commands)}:[/cyan]")
-                    console.print(f"[dim]{command}[/dim]")
                 else:
                     console.print(f"\n[cyan]Executing:[/cyan]")
+                
+                # Prepend sudo if admin flag is set and command doesn't already have it
+                if admin:
+                    command_stripped = command.strip()
+                    if not command_stripped.startswith('sudo'):
+                        command = f"sudo {command}"
+                    console.print(f"[dim]{command}[/dim]")
+                else:
                     console.print(f"[dim]{command}[/dim]")
                 
                 # Execute the command
