@@ -1,0 +1,32 @@
+Subject: Request to Claim Ownership of Package 'x'
+
+Hello PyPI Support Team,
+
+I would like to request ownership of the package "x" on PyPI.
+
+Details:
+- PyPI Username: carave0
+- Package Name: x
+- Package URL: https://pypi.org/project/x/
+
+Current Status:
+The package "x" currently exists but shows "UNKNOWN" for both author and maintainer fields, suggesting it may be abandoned or a placeholder package. The package has version 0.0.0 with no releases.
+
+Reason for Request:
+I am developing a CLI assistant tool and would like to publish it under the name "x" as it provides a simple, memorable command-line interface. The current package appears to be inactive/abandoned.
+
+My Package Details:
+- Name: x
+- Version: 1.0.0
+- Description: A CLI assistant powered by local AI (Msty Studio, MLX) or OpenAI
+- Author: Jon Caraveo (caraveo@me.com)
+- GitHub: https://github.com/caraveo/solai
+
+I understand that PyPI has policies regarding package name ownership and transfers. I am willing to provide any additional information or documentation needed to process this request.
+
+Thank you for your consideration.
+
+Best regards,
+Jon Caraveo
+caraveo@me.com
+

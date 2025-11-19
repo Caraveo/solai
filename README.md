@@ -1,6 +1,6 @@
 # x - Your Smart CLI Assistant
 
-x is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports local AI (via Msty Studio or MLX) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
+x (install via `pip install xcli-ai`) is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports local AI (via Msty Studio or MLX) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
 
 It came in a dream. "Thank you for this gift."
 
@@ -21,7 +21,7 @@ It came in a dream. "Thank you for this gift."
 
 ### Option 1: Install from PyPI (Recommended)
 ```bash
-pip install x
+pip install xcli-ai
 ```
 
 ### Option 2: Install from Source
@@ -64,7 +64,7 @@ x find large files
    - MLX server typically runs on `http://localhost:11973/v1`
 
 2. **First-time setup**
-   - Run any `sol` command to trigger the setup wizard
+   - Run any `x` or `!` command to trigger the setup wizard
    - Choose option 2 for "MLX - Apple Silicon optimized local AI"
    - Enter your MLX API base URL (default: `http://localhost:11973/v1`)
    - Enter your model name (default: `mlx-community/Qwen2.5-0.5B-Instruct-4bit`)
@@ -80,7 +80,7 @@ x find large files
 ### Using OpenAI - Hyper Speed Most Efficient (Fastest)
 
 1. **First-time setup**
-   - Run any `sol` command to trigger the setup wizard
+   - Run any `x` or `!` command to trigger the setup wizard
    - Choose option 3 for "OpenAI - Hyper Speed Most Efficient (Fastest)"
    - Get your API key from: https://platform.openai.com/api-keys
    - Configuration will be securely stored in `~/.solai.env`
@@ -177,7 +177,7 @@ API_KEY=your-api-key-here
 MODEL=gpt-3.5-turbo
 ```
 
-To reconfigure, simply delete `~/.solai.env` and run any `sol` command to trigger the setup process again.
+To reconfigure, simply delete `~/.solai.env` and run any `x` or `!` command to trigger the setup process again, or use `x --configure` for an interactive configuration menu.
 
 ## Contributing
 

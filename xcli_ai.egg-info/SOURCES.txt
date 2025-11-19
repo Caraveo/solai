@@ -1,0 +1,11 @@
+LICENSE
+README.md
+setup.py
+solai/__init__.py
+solai/app.py
+xcli_ai.egg-info/PKG-INFO
+xcli_ai.egg-info/SOURCES.txt
+xcli_ai.egg-info/dependency_links.txt
+xcli_ai.egg-info/entry_points.txt
+xcli_ai.egg-info/requires.txt
+xcli_ai.egg-info/top_level.txt

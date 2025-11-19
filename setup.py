@@ -10,7 +10,7 @@ except:
     pass
 
 setup(
-    name="x",
+    name="xcli-ai",
     version="1.0.0",
     packages=find_packages(),
     install_requires=[

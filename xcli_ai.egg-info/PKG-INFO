@@ -1,5 +1,5 @@
 Metadata-Version: 2.4
-Name: x
+Name: xcli-ai
 Version: 1.0.0
 Summary: A CLI assistant powered by local AI (Msty Studio) or OpenAI
 Home-page: https://github.com/caraveo/solai
@@ -55,7 +55,7 @@ It came in a dream. "Thank you for this gift."
 
 ### Option 1: Install from PyPI (Recommended)
 ```bash
-pip install x
+pip install xcli-ai
 ```
 
 ### Option 2: Install from Source
