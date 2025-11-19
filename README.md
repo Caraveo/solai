@@ -1,6 +1,6 @@
 # Solai - Your Smart CLI Assistant
 
-Solai is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports both local AI (via Msty Studio) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
+Solai is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports local AI (via Msty Studio or MLX) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
 
 It came in a dream. "Thank you for this gift."
 
@@ -11,9 +11,11 @@ It came in a dream. "Thank you for this gift."
 - ✅ Command confirmation before execution
 - 🔒 Secure API key storage
 - 🏠 **Local AI support via Msty Studio** - Run completely offline and private
+- 🍎 **MLX support** - Apple Silicon optimized local AI
 - ☁️ Cloud AI support via OpenAI
 - 💻 OS-specific command generation (macOS, Linux, Windows)
 - 🎨 Rich terminal output formatting
+- ⚙️ Easy configuration with `sol --configure`
 
 ## Installation
 
@@ -44,6 +46,24 @@ pip install -e .
    - Choose option 1 for "Local AI (Msty Studio)"
    - Enter your Msty Studio API base URL (default: `http://localhost:1234/v1`)
    - Enter your model name (default: `mistral`)
+   - Configuration will be saved to `~/.solai.env`
+
+3. **Run a command:**
+```bash
+sol find large files
+```
+
+### Using MLX (Apple Silicon) - Optimized for Mac
+
+1. **Install and start MLX server**
+   - Set up an MLX-compatible server running locally
+   - MLX server typically runs on `http://localhost:11973/v1`
+
+2. **First-time setup**
+   - Run any `sol` command to trigger the setup wizard
+   - Choose option 2 for "MLX - Apple Silicon optimized local AI"
+   - Enter your MLX API base URL (default: `http://localhost:11973/v1`)
+   - Enter your model name (default: `mlx-community/Qwen2.5-0.5B-Instruct-4bit`)
    - Configuration will be saved to `~/.solai.env`
 
 3. **Run a command:**
@@ -105,6 +125,7 @@ pip install -e .
 
 - Python 3.6+
 - **For Local AI**: Msty Studio installed and running
+- **For MLX**: MLX server installed and running (Apple Silicon optimized)
 - **For Cloud AI**: OpenAI API key
 - Required packages:
   - click
@@ -122,6 +143,14 @@ AI_PROVIDER=local
 API_BASE_URL=http://localhost:1234/v1
 API_KEY=not-needed
 MODEL=mistral
+```
+
+### MLX Configuration (Apple Silicon)
+```env
+AI_PROVIDER=mlx
+API_BASE_URL=http://localhost:11973/v1
+API_KEY=not-needed
+MODEL=mlx-community/Qwen2.5-0.5B-Instruct-4bit
 ```
 
 ### Cloud AI Configuration (OpenAI)

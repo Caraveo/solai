@@ -339,8 +339,25 @@ def get_command_suggestion(client, model, query):
         error_str = str(e).lower()
         error_type = type(e).__name__
         
+        # Check for model not found errors
+        if "model" in error_str and ("not found" in error_str or "not available" in error_str or "does not exist" in error_str):
+            console.print("\n[red]Error: Model not found[/red]")
+            console.print("[yellow]The model you specified is not available in your AI server.[/yellow]")
+            console.print(f"\n[dim]Error details: {str(e)}[/dim]")
+            console.print("\n[cyan]Common solutions:[/cyan]")
+            console.print("  1. Check that the model is loaded in Msty Studio")
+            console.print("  2. Verify the model name matches exactly (case-sensitive)")
+            console.print("  3. Use 'sol --configure' to update the model name")
+            console.print("\n[dim]Common model names: llama, mistral, codellama, phi, gemma, etc.[/dim]")
+            
+            try:
+                if Confirm.ask("\nWould you like to reconfigure the model now?"):
+                    reconfigure()
+            except (KeyboardInterrupt, EOFError):
+                pass
+        
         # Check for connection-related errors
-        if any(keyword in error_str for keyword in ["connection", "refused", "connect", "timeout", "unreachable"]):
+        elif any(keyword in error_str for keyword in ["connection", "refused", "connect", "timeout", "unreachable"]):
             console.print("\n[red]Error: Could not connect to AI server[/red]")
             console.print("[yellow]This might be because:[/yellow]")
             console.print("  • Msty Studio is not running (for local AI)")
