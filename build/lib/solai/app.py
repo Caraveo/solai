@@ -23,6 +23,34 @@ def get_system_info():
         return 'Windows'
     return system
 
+def list_available_models(base_url, api_key=None):
+    """List available models from local AI server"""
+    try:
+        # Create a temporary client to fetch models
+        if api_key and api_key != 'not-needed':
+            temp_client = OpenAI(base_url=base_url, api_key=api_key)
+        else:
+            temp_client = OpenAI(base_url=base_url, api_key="dummy-key-not-needed")
+        
+        # Try to fetch models list
+        models_response = temp_client.models.list()
+        models = [model.id for model in models_response.data]
+        
+        if models:
+            console.print("\n[green]Available models:[/green]")
+            for i, model_name in enumerate(models, 1):
+                console.print(f"  {i}. {model_name}")
+            console.print()  # Empty line for spacing
+            return models
+        else:
+            console.print("\n[yellow]No models found or models endpoint not available[/yellow]")
+            return []
+    except Exception as e:
+        # If listing fails, just return empty list - user can still type model name
+        console.print(f"\n[yellow]Could not fetch model list: {str(e)}[/yellow]")
+        console.print("[dim]You can still enter a model name manually[/dim]\n")
+        return []
+
 def setup_config():
     """Initial setup for configuration"""
     console.print("[yellow]First time setup: AI Configuration[/yellow]")
@@ -49,10 +77,29 @@ def setup_config():
             "Enter API key (or press Enter for 'not-needed')", 
             default="not-needed"
         )
-        model = Prompt.ask(
-            "Enter model name", 
-            default="mistral"
-        )
+        # Try to list available models
+        console.print("\n[cyan]Fetching available models from server...[/cyan]")
+        available_models = list_available_models(base_url, api_key)
+        
+        if available_models:
+            console.print("[cyan]You can:[/cyan]")
+            console.print("  • Type a number from the list above")
+            console.print("  • Type the full model name")
+            model_input = Prompt.ask("Enter model name or number", default="mistral")
+            
+            # Check if user entered a number
+            try:
+                model_index = int(model_input) - 1
+                if 0 <= model_index < len(available_models):
+                    model = available_models[model_index]
+                    console.print(f"[green]Selected: {model}[/green]")
+                else:
+                    model = model_input
+            except ValueError:
+                # Not a number, use as model name
+                model = model_input
+        else:
+            model = Prompt.ask("Enter model name", default="mistral")
         
         config_lines.append(f"AI_PROVIDER=local")
         config_lines.append(f"API_BASE_URL={base_url}")
@@ -71,10 +118,29 @@ def setup_config():
             "Enter API key (or press Enter for 'not-needed')", 
             default="not-needed"
         )
-        model = Prompt.ask(
-            "Enter model name", 
-            default="mlx-community/Qwen2.5-0.5B-Instruct-4bit"
-        )
+        # Try to list available models
+        console.print("\n[cyan]Fetching available models from server...[/cyan]")
+        available_models = list_available_models(base_url, api_key)
+        
+        if available_models:
+            console.print("[cyan]You can:[/cyan]")
+            console.print("  • Type a number from the list above")
+            console.print("  • Type the full model name")
+            model_input = Prompt.ask("Enter model name or number", default="mlx-community/Qwen2.5-0.5B-Instruct-4bit")
+            
+            # Check if user entered a number
+            try:
+                model_index = int(model_input) - 1
+                if 0 <= model_index < len(available_models):
+                    model = available_models[model_index]
+                    console.print(f"[green]Selected: {model}[/green]")
+                else:
+                    model = model_input
+            except ValueError:
+                # Not a number, use as model name
+                model = model_input
+        else:
+            model = Prompt.ask("Enter model name", default="mlx-community/Qwen2.5-0.5B-Instruct-4bit")
         
         config_lines.append(f"AI_PROVIDER=mlx")
         config_lines.append(f"API_BASE_URL={base_url}")
@@ -132,10 +198,29 @@ def migrate_old_config(config_path):
                 "Enter API key (or press Enter for 'not-needed')", 
                 default="not-needed"
             )
-            model = Prompt.ask(
-                "Enter model name", 
-                default="mistral"
-            )
+            # Try to list available models
+            console.print("\n[cyan]Fetching available models from server...[/cyan]")
+            available_models = list_available_models(base_url, api_key)
+            
+            if available_models:
+                console.print("[cyan]You can:[/cyan]")
+                console.print("  • Type a number from the list above")
+                console.print("  • Type the full model name")
+                model_input = Prompt.ask("Enter model name or number", default="mistral")
+                
+                # Check if user entered a number
+                try:
+                    model_index = int(model_input) - 1
+                    if 0 <= model_index < len(available_models):
+                        model = available_models[model_index]
+                        console.print(f"[green]Selected: {model}[/green]")
+                    else:
+                        model = model_input
+                except ValueError:
+                    # Not a number, use as model name
+                    model = model_input
+            else:
+                model = Prompt.ask("Enter model name", default="mistral")
             
             with open(config_path, 'w') as f:
                 f.write(f"AI_PROVIDER=local\n")
@@ -156,10 +241,29 @@ def migrate_old_config(config_path):
                 "Enter API key (or press Enter for 'not-needed')", 
                 default="not-needed"
             )
-            model = Prompt.ask(
-                "Enter model name", 
-                default="mlx-community/Qwen2.5-0.5B-Instruct-4bit"
-            )
+            # Try to list available models
+            console.print("\n[cyan]Fetching available models from server...[/cyan]")
+            available_models = list_available_models(base_url, api_key)
+            
+            if available_models:
+                console.print("[cyan]You can:[/cyan]")
+                console.print("  • Type a number from the list above")
+                console.print("  • Type the full model name")
+                model_input = Prompt.ask("Enter model name or number", default="mlx-community/Qwen2.5-0.5B-Instruct-4bit")
+                
+                # Check if user entered a number
+                try:
+                    model_index = int(model_input) - 1
+                    if 0 <= model_index < len(available_models):
+                        model = available_models[model_index]
+                        console.print(f"[green]Selected: {model}[/green]")
+                    else:
+                        model = model_input
+                except ValueError:
+                    # Not a number, use as model name
+                    model = model_input
+            else:
+                model = Prompt.ask("Enter model name", default="mlx-community/Qwen2.5-0.5B-Instruct-4bit")
             
             with open(config_path, 'w') as f:
                 f.write(f"AI_PROVIDER=mlx\n")
@@ -240,10 +344,29 @@ def reconfigure():
                 "Enter API key (or press Enter for 'not-needed')", 
                 default="not-needed"
             )
-            model = Prompt.ask(
-                "Enter model name", 
-                default=current_model if current_provider == 'local' else "mistral"
-            )
+            # Try to list available models
+            console.print("\n[cyan]Fetching available models from server...[/cyan]")
+            available_models = list_available_models(base_url, api_key)
+            
+            if available_models:
+                console.print("[cyan]You can:[/cyan]")
+                console.print("  • Type a number from the list above")
+                console.print("  • Type the full model name")
+                model_input = Prompt.ask("Enter model name or number", default=current_model if current_provider == 'local' else "mistral")
+                
+                # Check if user entered a number
+                try:
+                    model_index = int(model_input) - 1
+                    if 0 <= model_index < len(available_models):
+                        model = available_models[model_index]
+                        console.print(f"[green]Selected: {model}[/green]")
+                    else:
+                        model = model_input
+                except ValueError:
+                    # Not a number, use as model name
+                    model = model_input
+            else:
+                model = Prompt.ask("Enter model name", default=current_model if current_provider == 'local' else "mistral")
             
             config_lines.append(f"AI_PROVIDER=local")
             config_lines.append(f"API_BASE_URL={base_url}")
@@ -260,10 +383,29 @@ def reconfigure():
                 "Enter API key (or press Enter for 'not-needed')", 
                 default="not-needed"
             )
-            model = Prompt.ask(
-                "Enter model name", 
-                default=current_model if current_provider == 'mlx' else "mlx-community/Qwen2.5-0.5B-Instruct-4bit"
-            )
+            # Try to list available models
+            console.print("\n[cyan]Fetching available models from server...[/cyan]")
+            available_models = list_available_models(base_url, api_key)
+            
+            if available_models:
+                console.print("[cyan]You can:[/cyan]")
+                console.print("  • Type a number from the list above")
+                console.print("  • Type the full model name")
+                model_input = Prompt.ask("Enter model name or number", default=current_model if current_provider == 'mlx' else "mlx-community/Qwen2.5-0.5B-Instruct-4bit")
+                
+                # Check if user entered a number
+                try:
+                    model_index = int(model_input) - 1
+                    if 0 <= model_index < len(available_models):
+                        model = available_models[model_index]
+                        console.print(f"[green]Selected: {model}[/green]")
+                    else:
+                        model = model_input
+                except ValueError:
+                    # Not a number, use as model name
+                    model = model_input
+            else:
+                model = Prompt.ask("Enter model name", default=current_model if current_provider == 'mlx' else "mlx-community/Qwen2.5-0.5B-Instruct-4bit")
             
             config_lines.append(f"AI_PROVIDER=mlx")
             config_lines.append(f"API_BASE_URL={base_url}")
@@ -283,7 +425,33 @@ def reconfigure():
     
     elif choice == "2":
         # Update model only
-        new_model = Prompt.ask("Enter new model name", default=current_model)
+        if current_provider in ['local', 'mlx']:
+            # For local providers, try to list available models
+            console.print("\n[cyan]Fetching available models from server...[/cyan]")
+            available_models = list_available_models(current_base_url, current_api_key)
+            
+            if available_models:
+                console.print("[cyan]You can:[/cyan]")
+                console.print("  • Type a number from the list above")
+                console.print("  • Type the full model name")
+                console.print("  • Press Enter to keep current model")
+                model_input = Prompt.ask("Enter model name or number", default=current_model)
+                
+                # Check if user entered a number
+                try:
+                    model_index = int(model_input) - 1
+                    if 0 <= model_index < len(available_models):
+                        new_model = available_models[model_index]
+                        console.print(f"[green]Selected: {new_model}[/green]")
+                    else:
+                        new_model = model_input
+                except ValueError:
+                    # Not a number, use as model name
+                    new_model = model_input
+            else:
+                new_model = Prompt.ask("Enter new model name", default=current_model)
+        else:
+            new_model = Prompt.ask("Enter new model name", default=current_model)
         
         config_lines.append(f"AI_PROVIDER={current_provider}")
         if current_provider in ['local', 'mlx']:
