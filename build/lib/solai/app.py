@@ -567,12 +567,43 @@ def load_config():
     return client, model
 
 def extract_commands_from_response(result, trigger_words=None):
-    """Extract commands from AI response using trigger words"""
+    """Extract commands from AI response using trigger words and code blocks"""
     if trigger_words is None:
-        trigger_words = ['COMMAND:', 'EXECUTE:', 'RUN:', '```bash', '```sh', '```']
+        trigger_words = ['```bash', '```sh', '```shell', '```', 'COMMAND:', 'EXECUTE:', 'RUN:']
     
-    lines = result.split('\n')
     commands = []
+    
+    # First, prioritize code blocks - they're the cleanest format
+    if '```' in result:
+        parts = result.split('```')
+        for i, part in enumerate(parts):
+            if i % 2 == 1:  # Odd indices are code blocks
+                lines = part.strip().split('\n')
+                # Skip language identifier (bash, sh, shell)
+                if lines and lines[0].lower() in ['bash', 'sh', 'shell']:
+                    lines = lines[1:]
+                # Collect all non-empty lines as commands
+                code_block_commands = []
+                for line in lines:
+                    line = line.strip()
+                    if line and not line.startswith('#') and not line.startswith('//'):
+                        code_block_commands.append(line)
+                
+                if code_block_commands:
+                    # If multiple lines, treat each as separate command
+                    # If single line, treat as one command
+                    if len(code_block_commands) == 1:
+                        commands.append(code_block_commands[0])
+                    else:
+                        # Multiple commands in one block - split by newlines
+                        commands.extend(code_block_commands)
+        
+        # If we found commands in code blocks, return them
+        if commands:
+            return commands
+    
+    # Fallback to trigger word extraction if no code blocks found
+    lines = result.split('\n')
     in_command_section = False
     current_command = []
     
@@ -598,28 +629,60 @@ def extract_commands_from_response(result, trigger_words=None):
         if in_command_section:
             # Skip markdown code block markers
             if line_stripped in ['```', '```bash', '```sh', '```shell']:
-                continue
-            
-            # If we hit another markdown section or reasoning, stop collecting
-            if line_stripped.startswith('**') and ('Reasoning' in line_stripped or 'Answer' in line_stripped):
+                # If we hit closing code block, end command collection
                 if current_command:
-                    commands.append('\n'.join(current_command).strip())
-                    current_command = []
-                in_command_section = False
-                continue
-            
-            # Collect command lines (skip empty lines at start)
-            if line_stripped or current_command:
-                # Clean up markdown formatting
-                cleaned = line.replace('`', '').replace('**', '').strip()
-                if cleaned:
-                    current_command.append(cleaned)
-                elif current_command:
-                    # Empty line after commands - end this command
                     cmd = '\n'.join(current_command).strip()
                     if cmd:
                         commands.append(cmd)
                     current_command = []
+                in_command_section = False
+                continue
+            
+            # Stop collecting if we hit another section marker
+            if (line_stripped.startswith('**') or 
+                line_stripped.startswith('[') or 
+                line_stripped.startswith('---') or
+                'Reasoning' in line_stripped or 
+                'Answer' in line_stripped or
+                line_stripped.upper().startswith('COMMAND:') or
+                line_stripped.upper().startswith('EXECUTE:') or
+                line_stripped.upper().startswith('RUN:')):
+                if current_command:
+                    cmd = '\n'.join(current_command).strip()
+                    if cmd:
+                        commands.append(cmd)
+                    current_command = []
+                # If it's a new trigger, start new command section
+                if not (line_stripped.upper().startswith('COMMAND:') or
+                        line_stripped.upper().startswith('EXECUTE:') or
+                        line_stripped.upper().startswith('RUN:')):
+                    in_command_section = False
+                continue
+            
+            # Skip lines that are clearly not commands (too long, contain reasoning words)
+            if len(line_stripped) > 200 or any(word in line_stripped.lower() for word in ['reasoning', 'explanation', 'this will', 'note:', 'tip:']):
+                if current_command:
+                    # End current command if we hit explanatory text
+                    cmd = '\n'.join(current_command).strip()
+                    if cmd:
+                        commands.append(cmd)
+                    current_command = []
+                in_command_section = False
+                continue
+            
+            # Collect command lines
+            if line_stripped:
+                # Clean up markdown formatting
+                cleaned = line.replace('`', '').replace('**', '').strip()
+                if cleaned:
+                    current_command.append(cleaned)
+            elif current_command:
+                # Empty line after commands - end this command
+                cmd = '\n'.join(current_command).strip()
+                if cmd:
+                    commands.append(cmd)
+                current_command = []
+                in_command_section = False
     
     # Add last command if any
     if current_command:
@@ -663,7 +726,7 @@ def get_command_suggestion(client, model, query):
             messages=[
                 {
                     "role": "system", 
-                    "content": f"You are a CLI assistant for {os_type}. You can provide reasoning and explanations. When you have commands to execute, mark them with 'COMMAND:' or put them in a code block (```bash ... ```). You can provide multiple commands for complex tasks. Format: Provide your reasoning, then use 'COMMAND:' followed by the command(s) to execute. Each command should be on its own line. Ensure all commands are compatible with {os_type}."
+                    "content": f"You are a CLI assistant for {os_type}. Provide your reasoning first, then put all commands to execute in a code block. Format: Provide reasoning, then use ```bash followed by the command(s) to execute, one per line, ending with ```. You can provide multiple commands for complex tasks. Ensure all commands are compatible with {os_type}."
                 },
                 {"role": "user", "content": query}
             ]
@@ -757,15 +820,28 @@ def main(query, configure):
         # Get full response and commands
         full_response, commands = get_command_suggestion(client, model, full_query)
         
-        # Extract reasoning (everything before commands)
+        # Extract reasoning (everything before code blocks or trigger words)
         reasoning = full_response
-        for trigger in ['COMMAND:', 'EXECUTE:', 'RUN:', '```bash', '```sh', '```']:
-            if trigger.upper() in reasoning.upper():
-                # Split at first trigger word
-                parts = reasoning.split(trigger, 1)
-                if len(parts) > 0:
-                    reasoning = parts[0].strip()
-                break
+        # Find the earliest code block or trigger word position
+        earliest_pos = len(reasoning)
+        
+        # Check for code blocks first (most common format)
+        if '```' in reasoning:
+            pos = reasoning.find('```')
+            if pos < earliest_pos:
+                earliest_pos = pos
+        
+        # Check for trigger words
+        for trigger in ['COMMAND:', 'EXECUTE:', 'RUN:']:
+            trigger_upper = trigger.upper()
+            reasoning_upper = reasoning.upper()
+            if trigger_upper in reasoning_upper:
+                pos = reasoning_upper.find(trigger_upper)
+                if pos < earliest_pos:
+                    earliest_pos = pos
+        
+        if earliest_pos < len(reasoning):
+            reasoning = reasoning[:earliest_pos].strip()
         
         # Display reasoning
         console.print("\n[cyan]Command Reasoning:[/cyan]")

@@ -726,7 +726,7 @@ def get_command_suggestion(client, model, query):
             messages=[
                 {
                     "role": "system", 
-                    "content": f"You are a CLI assistant for {os_type}. Provide your reasoning first, then put all commands to execute in a code block. Format: Provide reasoning, then use ```bash followed by the command(s) to execute, one per line, ending with ```. You can provide multiple commands for complex tasks. Ensure all commands are compatible with {os_type}."
+                    "content": f"You are a CLI assistant for {os_type}. Provide your reasoning first, explaining what the command(s) will do and why. Then put all commands to execute in a code block. Format: Provide reasoning (explaining what the commands do), then use ```bash followed by the command(s) to execute, one per line, ending with ```. You can provide multiple commands for complex tasks. Ensure all commands are compatible with {os_type}."
                 },
                 {"role": "user", "content": query}
             ]
