@@ -34,7 +34,7 @@ Dynamic: summary
 
 # Solai - Your Smart CLI Assistant
 
-Solai is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports both local AI (via Msty Studio) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
+Solai is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports local AI (via Msty Studio or MLX) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
 
 It came in a dream. "Thank you for this gift."
 
@@ -45,9 +45,11 @@ It came in a dream. "Thank you for this gift."
 - ✅ Command confirmation before execution
 - 🔒 Secure API key storage
 - 🏠 **Local AI support via Msty Studio** - Run completely offline and private
-- ☁️ Cloud AI support via OpenAI
+- 🍎 **MLX support** - Apple Silicon optimized local AI
+- ⚡ **OpenAI - Hyper Speed Most Efficient (Fastest)** - Fastest cloud AI option
 - 💻 OS-specific command generation (macOS, Linux, Windows)
 - 🎨 Rich terminal output formatting
+- ⚙️ Easy configuration with `sol --configure`
 
 ## Installation
 
@@ -85,11 +87,29 @@ pip install -e .
 sol find large files
 ```
 
-### Using OpenAI Cloud
+### Using MLX (Apple Silicon) - Optimized for Mac
+
+1. **Install and start MLX server**
+   - Set up an MLX-compatible server running locally
+   - MLX server typically runs on `http://localhost:11973/v1`
+
+2. **First-time setup**
+   - Run any `sol` command to trigger the setup wizard
+   - Choose option 2 for "MLX - Apple Silicon optimized local AI"
+   - Enter your MLX API base URL (default: `http://localhost:11973/v1`)
+   - Enter your model name (default: `mlx-community/Qwen2.5-0.5B-Instruct-4bit`)
+   - Configuration will be saved to `~/.solai.env`
+
+3. **Run a command:**
+```bash
+sol find large files
+```
+
+### Using OpenAI - Hyper Speed Most Efficient (Fastest)
 
 1. **First-time setup**
    - Run any `sol` command to trigger the setup wizard
-   - Choose option 2 for "OpenAI Cloud"
+   - Choose option 3 for "OpenAI - Hyper Speed Most Efficient (Fastest)"
    - Get your API key from: https://platform.openai.com/api-keys
    - Configuration will be securely stored in `~/.solai.env`
 
@@ -139,7 +159,8 @@ pip install -e .
 
 - Python 3.6+
 - **For Local AI**: Msty Studio installed and running
-- **For Cloud AI**: OpenAI API key
+- **For MLX**: MLX server installed and running (Apple Silicon optimized)
+- **For OpenAI - Hyper Speed Most Efficient (Fastest)**: OpenAI API key
 - Required packages:
   - click
   - python-dotenv
@@ -158,7 +179,15 @@ API_KEY=not-needed
 MODEL=mistral
 ```
 
-### Cloud AI Configuration (OpenAI)
+### MLX Configuration (Apple Silicon)
+```env
+AI_PROVIDER=mlx
+API_BASE_URL=http://localhost:11973/v1
+API_KEY=not-needed
+MODEL=mlx-community/Qwen2.5-0.5B-Instruct-4bit
+```
+
+### OpenAI - Hyper Speed Most Efficient (Fastest) Configuration
 ```env
 AI_PROVIDER=openai
 API_KEY=your-api-key-here

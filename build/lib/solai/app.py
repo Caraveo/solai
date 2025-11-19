@@ -28,9 +28,10 @@ def setup_config():
     console.print("[yellow]First time setup: AI Configuration[/yellow]")
     console.print("\n[cyan]Choose your AI provider:[/cyan]")
     console.print("1. Local AI (Msty Studio) - Recommended for privacy")
-    console.print("2. OpenAI Cloud")
+    console.print("2. MLX - Apple Silicon optimized local AI")
+    console.print("3. OpenAI - Hyper Speed Most Efficient (Fastest)")
     
-    choice = Prompt.ask("Enter your choice", choices=["1", "2"], default="1")
+    choice = Prompt.ask("Enter your choice", choices=["1", "2", "3"], default="1")
     
     config_path = os.path.expanduser('~/.solai.env')
     config_lines = []
@@ -57,9 +58,31 @@ def setup_config():
         config_lines.append(f"API_BASE_URL={base_url}")
         config_lines.append(f"API_KEY={api_key}")
         config_lines.append(f"MODEL={model}")
+    elif choice == "2":
+        # MLX setup
+        console.print("\n[blue]Setting up MLX (Apple Silicon optimized)[/blue]")
+        console.print("[dim]Make sure your MLX server is running locally[/dim]")
+        
+        base_url = Prompt.ask(
+            "Enter MLX API base URL", 
+            default="http://localhost:11973/v1"
+        )
+        api_key = Prompt.ask(
+            "Enter API key (or press Enter for 'not-needed')", 
+            default="not-needed"
+        )
+        model = Prompt.ask(
+            "Enter model name", 
+            default="mlx-community/Qwen2.5-0.5B-Instruct-4bit"
+        )
+        
+        config_lines.append(f"AI_PROVIDER=mlx")
+        config_lines.append(f"API_BASE_URL={base_url}")
+        config_lines.append(f"API_KEY={api_key}")
+        config_lines.append(f"MODEL={model}")
     else:
         # OpenAI Cloud setup
-        console.print("\n[blue]Setting up OpenAI Cloud[/blue]")
+        console.print("\n[blue]Setting up OpenAI - Hyper Speed Most Efficient (Fastest)[/blue]")
         console.print("[dim]Get your API key from: https://platform.openai.com/api-keys[/dim]")
         
         api_key = Prompt.ask("Enter your OpenAI API key", type=str)
@@ -82,11 +105,12 @@ def migrate_old_config(config_path):
     
     if old_api_key:
         console.print("[yellow]Detected old configuration format. Migrating...[/yellow]")
-        console.print("[cyan]Would you like to use OpenAI Cloud (your existing key) or switch to Local AI (Msty Studio)?[/cyan]")
-        console.print("1. Keep OpenAI Cloud (use existing API key)")
+        console.print("[cyan]Would you like to use OpenAI - Hyper Speed Most Efficient (Fastest) (your existing key) or switch to a local AI provider?[/cyan]")
+        console.print("1. Keep OpenAI - Hyper Speed Most Efficient (Fastest) (use existing API key)")
         console.print("2. Switch to Local AI (Msty Studio)")
+        console.print("3. Switch to MLX (Apple Silicon optimized)")
         
-        choice = Prompt.ask("Enter your choice", choices=["1", "2"], default="1")
+        choice = Prompt.ask("Enter your choice", choices=["1", "2", "3"], default="1")
         
         if choice == "1":
             # Migrate to new OpenAI format
@@ -94,9 +118,9 @@ def migrate_old_config(config_path):
                 f.write(f"AI_PROVIDER=openai\n")
                 f.write(f"API_KEY={old_api_key}\n")
                 f.write(f"MODEL=gpt-3.5-turbo\n")
-            console.print("[green]Configuration migrated to OpenAI Cloud format[/green]")
-        else:
-            # Switch to local AI
+            console.print("[green]Configuration migrated to OpenAI - Hyper Speed Most Efficient (Fastest) format[/green]")
+        elif choice == "2":
+            # Switch to local AI (Msty Studio)
             console.print("\n[blue]Setting up local AI with Msty Studio[/blue]")
             console.print("[dim]Make sure Msty Studio is running locally[/dim]")
             
@@ -119,6 +143,30 @@ def migrate_old_config(config_path):
                 f.write(f"API_KEY={api_key}\n")
                 f.write(f"MODEL={model}\n")
             console.print("[green]Configuration set to Local AI[/green]")
+        else:
+            # Switch to MLX
+            console.print("\n[blue]Setting up MLX (Apple Silicon optimized)[/blue]")
+            console.print("[dim]Make sure your MLX server is running locally[/dim]")
+            
+            base_url = Prompt.ask(
+                "Enter MLX API base URL", 
+                default="http://localhost:11973/v1"
+            )
+            api_key = Prompt.ask(
+                "Enter API key (or press Enter for 'not-needed')", 
+                default="not-needed"
+            )
+            model = Prompt.ask(
+                "Enter model name", 
+                default="mlx-community/Qwen2.5-0.5B-Instruct-4bit"
+            )
+            
+            with open(config_path, 'w') as f:
+                f.write(f"AI_PROVIDER=mlx\n")
+                f.write(f"API_BASE_URL={base_url}\n")
+                f.write(f"API_KEY={api_key}\n")
+                f.write(f"MODEL={model}\n")
+            console.print("[green]Configuration set to MLX[/green]")
 
 def reconfigure():
     """Reconfigure existing settings"""
@@ -133,20 +181,32 @@ def reconfigure():
     load_dotenv(config_path)
     current_provider = os.getenv('AI_PROVIDER', 'local').lower()
     current_api_key = os.getenv('API_KEY') or os.getenv('OPENAI_API_KEY', 'not-needed')
-    current_model = os.getenv('MODEL', 'mistral' if current_provider == 'local' else 'gpt-3.5-turbo')
-    current_base_url = os.getenv('API_BASE_URL', 'http://localhost:1234/v1')
+    
+    # Set default model based on provider
+    if current_provider == 'mlx':
+        default_model = 'mlx-community/Qwen2.5-0.5B-Instruct-4bit'
+        default_base_url = 'http://localhost:11973/v1'
+    elif current_provider == 'local':
+        default_model = 'mistral'
+        default_base_url = 'http://localhost:1234/v1'
+    else:
+        default_model = 'gpt-3.5-turbo'
+        default_base_url = 'http://localhost:1234/v1'
+    
+    current_model = os.getenv('MODEL', default_model)
+    current_base_url = os.getenv('API_BASE_URL', default_base_url)
     
     console.print("[cyan]Current Configuration:[/cyan]")
     console.print(f"  Provider: {current_provider}")
-    if current_provider == 'local':
+    if current_provider in ['local', 'mlx']:
         console.print(f"  API Base URL: {current_base_url}")
     console.print(f"  Model: {current_model}")
     console.print(f"  API Key: {'*' * 20 if current_api_key != 'not-needed' else 'not-needed'}")
     
     console.print("\n[cyan]What would you like to configure?[/cyan]")
-    console.print("1. Change AI Provider (Local AI ↔ OpenAI Cloud)")
+    console.print("1. Change AI Provider (Local AI ↔ MLX ↔ OpenAI - Hyper Speed Most Efficient (Fastest))")
     console.print("2. Update Model")
-    if current_provider == 'local':
+    if current_provider in ['local', 'mlx']:
         console.print("3. Update API Base URL")
         console.print("4. Update API Key")
         console.print("5. Reset all configuration (start fresh)")
@@ -164,9 +224,10 @@ def reconfigure():
         # Switch provider
         console.print("\n[cyan]Choose your AI provider:[/cyan]")
         console.print("1. Local AI (Msty Studio) - Recommended for privacy")
-        console.print("2. OpenAI Cloud")
+        console.print("2. MLX - Apple Silicon optimized local AI")
+        console.print("3. OpenAI - Hyper Speed Most Efficient (Fastest)")
         
-        provider_choice = Prompt.ask("Enter your choice", choices=["1", "2"], default="1")
+        provider_choice = Prompt.ask("Enter your choice", choices=["1", "2", "3"], default="1")
         
         if provider_choice == "1":
             # Switch to Local AI
@@ -188,9 +249,29 @@ def reconfigure():
             config_lines.append(f"API_BASE_URL={base_url}")
             config_lines.append(f"API_KEY={api_key}")
             config_lines.append(f"MODEL={model}")
+        elif provider_choice == "2":
+            # Switch to MLX
+            console.print("\n[blue]Configuring MLX (Apple Silicon optimized)[/blue]")
+            base_url = Prompt.ask(
+                "Enter MLX API base URL", 
+                default=current_base_url if current_provider == 'mlx' else "http://localhost:11973/v1"
+            )
+            api_key = Prompt.ask(
+                "Enter API key (or press Enter for 'not-needed')", 
+                default="not-needed"
+            )
+            model = Prompt.ask(
+                "Enter model name", 
+                default=current_model if current_provider == 'mlx' else "mlx-community/Qwen2.5-0.5B-Instruct-4bit"
+            )
+            
+            config_lines.append(f"AI_PROVIDER=mlx")
+            config_lines.append(f"API_BASE_URL={base_url}")
+            config_lines.append(f"API_KEY={api_key}")
+            config_lines.append(f"MODEL={model}")
         else:
             # Switch to OpenAI Cloud
-            console.print("\n[blue]Configuring OpenAI Cloud[/blue]")
+            console.print("\n[blue]Configuring OpenAI - Hyper Speed Most Efficient (Fastest)[/blue]")
             console.print("[dim]Get your API key from: https://platform.openai.com/api-keys[/dim]")
             
             api_key = Prompt.ask("Enter your OpenAI API key", default=current_api_key if current_api_key != 'not-needed' else "")
@@ -205,16 +286,16 @@ def reconfigure():
         new_model = Prompt.ask("Enter new model name", default=current_model)
         
         config_lines.append(f"AI_PROVIDER={current_provider}")
-        if current_provider == 'local':
+        if current_provider in ['local', 'mlx']:
             config_lines.append(f"API_BASE_URL={current_base_url}")
             config_lines.append(f"API_KEY={current_api_key}")
         config_lines.append(f"MODEL={new_model}")
     
-    elif choice == "3" and current_provider == 'local':
-        # Update API Base URL (local only)
+    elif choice == "3" and current_provider in ['local', 'mlx']:
+        # Update API Base URL (local/MLX only)
         new_base_url = Prompt.ask("Enter new API base URL", default=current_base_url)
         
-        config_lines.append(f"AI_PROVIDER=local")
+        config_lines.append(f"AI_PROVIDER={current_provider}")
         config_lines.append(f"API_BASE_URL={new_base_url}")
         config_lines.append(f"API_KEY={current_api_key}")
         config_lines.append(f"MODEL={current_model}")
@@ -227,11 +308,11 @@ def reconfigure():
         config_lines.append(f"API_KEY={new_api_key}")
         config_lines.append(f"MODEL={current_model}")
     
-    elif choice == "4" and current_provider == 'local':
-        # Update API Key (local)
+    elif choice == "4" and current_provider in ['local', 'mlx']:
+        # Update API Key (local/MLX)
         new_api_key = Prompt.ask("Enter new API key (or press Enter for 'not-needed')", default=current_api_key)
         
-        config_lines.append(f"AI_PROVIDER=local")
+        config_lines.append(f"AI_PROVIDER={current_provider}")
         config_lines.append(f"API_BASE_URL={current_base_url}")
         config_lines.append(f"API_KEY={new_api_key}")
         config_lines.append(f"MODEL={current_model}")
@@ -280,12 +361,24 @@ def load_config():
     
     provider = os.getenv('AI_PROVIDER', 'local').lower()
     api_key = os.getenv('API_KEY') or os.getenv('OPENAI_API_KEY', 'not-needed')
-    model = os.getenv('MODEL', 'mistral' if provider == 'local' else 'gpt-3.5-turbo')
-    base_url = os.getenv('API_BASE_URL', 'http://localhost:1234/v1')
+    
+    # Set defaults based on provider
+    if provider == 'mlx':
+        default_model = 'mlx-community/Qwen2.5-0.5B-Instruct-4bit'
+        default_base_url = 'http://localhost:11973/v1'
+    elif provider == 'local':
+        default_model = 'mistral'
+        default_base_url = 'http://localhost:1234/v1'
+    else:
+        default_model = 'gpt-3.5-turbo'
+        default_base_url = 'http://localhost:1234/v1'
+    
+    model = os.getenv('MODEL', default_model)
+    base_url = os.getenv('API_BASE_URL', default_base_url)
     
     # Initialize client based on provider
-    if provider == 'local':
-        # Local AI (Msty Studio)
+    if provider in ['local', 'mlx']:
+        # Local AI (Msty Studio) or MLX
         # OpenAI client requires api_key parameter even for local servers
         # Use a dummy value if not provided
         if api_key and api_key != 'not-needed':
