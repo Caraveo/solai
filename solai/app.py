@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
 # Version - defined here to avoid circular import
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 console = Console()
 
