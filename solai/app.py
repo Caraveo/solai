@@ -175,7 +175,14 @@ def get_command_suggestion(client, model, query):
                 {"role": "user", "content": query}
             ]
         )
-        result = response.choices[0].message.content.strip()
+        if not response.choices or not response.choices[0].message:
+            raise Exception("Empty response from AI server")
+        
+        result = response.choices[0].message.content
+        if not result:
+            raise Exception("AI server returned empty content")
+        
+        result = result.strip()
         
         # Split command and explanation
         if '||' in result:
@@ -185,19 +192,31 @@ def get_command_suggestion(client, model, query):
     except Exception as e:
         # If local AI fails, provide helpful error message
         error_str = str(e).lower()
-        if "connection" in error_str or "refused" in error_str or "connect" in error_str:
+        error_type = type(e).__name__
+        
+        # Check for connection-related errors
+        if any(keyword in error_str for keyword in ["connection", "refused", "connect", "timeout", "unreachable"]):
             console.print("\n[red]Error: Could not connect to AI server[/red]")
             console.print("[yellow]This might be because:[/yellow]")
             console.print("  • Msty Studio is not running (for local AI)")
             console.print("  • The API endpoint URL is incorrect")
             console.print("  • There's a network connectivity issue")
-            console.print(f"\n[dim]Error details: {str(e)}[/dim]")
+            console.print(f"\n[dim]Error type: {error_type}[/dim]")
+            console.print(f"[dim]Error details: {str(e)}[/dim]")
             
-            if Confirm.ask("\nWould you like to reconfigure solai?"):
-                config_path = os.path.expanduser('~/.solai.env')
-                if os.path.exists(config_path):
-                    os.remove(config_path)
-                    console.print("[green]Configuration reset. Please run sol again to reconfigure.[/green]")
+            try:
+                if Confirm.ask("\nWould you like to reconfigure solai?"):
+                    config_path = os.path.expanduser('~/.solai.env')
+                    if os.path.exists(config_path):
+                        os.remove(config_path)
+                        console.print("[green]Configuration reset. Please run sol again to reconfigure.[/green]")
+            except (KeyboardInterrupt, EOFError):
+                pass
+        else:
+            # Other types of errors
+            console.print(f"\n[red]Error: {error_type}[/red]")
+            console.print(f"[yellow]{str(e)}[/yellow]")
+            console.print(f"\n[dim]Full error: {repr(e)}[/dim]")
         raise
 
 @click.command()
@@ -231,8 +250,16 @@ def main(query):
         # Ask for confirmation
         if Confirm.ask("Do you want to execute this command?"):
             os.system(command)
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Cancelled by user[/yellow]")
+        sys.exit(0)
     except Exception as e:
-        # Error handling is done in get_command_suggestion
+        # If error wasn't already displayed in get_command_suggestion, show it here
+        # (This handles cases where get_command_suggestion didn't catch it)
+        error_str = str(e).lower()
+        if "connection" not in error_str and "refused" not in error_str and "connect" not in error_str:
+            console.print(f"\n[red]Unexpected error: {type(e).__name__}[/red]")
+            console.print(f"[yellow]{str(e)}[/yellow]")
         sys.exit(1)
 
 if __name__ == "__main__":
