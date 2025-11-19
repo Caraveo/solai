@@ -10,7 +10,7 @@ except:
 
 setup(
     name="solai",
-    version="0.1.0",
+    version="1.0.0",
     packages=find_packages(),
     install_requires=[
         'click>=8.0.0',
@@ -24,7 +24,7 @@ setup(
         ],
     },
     author="Jon Caraveo",
-    author_email="jon@ziavision.com",
+    author_email="caraveo@me.com",
     description="A CLI assistant powered by local AI (Msty Studio) or OpenAI",
     long_description=long_description,
     long_description_content_type="text/markdown",

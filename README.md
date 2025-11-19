@@ -176,6 +176,6 @@ MIT License
 
 ## Contact
 
-Jon Caraveo - jon@ziavision.com
+Jon Caraveo - caraveo@me.com
 
 Project Link: [https://github.com/caraveo/solai](https://github.com/caraveo/solai)
