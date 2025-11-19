@@ -1,6 +1,6 @@
-# Solai - Your Smart CLI Assistant
+# x - Your Smart CLI Assistant
 
-Solai is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports local AI (via Msty Studio or MLX) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
+x is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports local AI (via Msty Studio or MLX) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
 
 It came in a dream. "Thank you for this gift."
 
@@ -15,13 +15,13 @@ It came in a dream. "Thank you for this gift."
 - ⚡ **OpenAI - Hyper Speed Most Efficient (Fastest)** - Fastest cloud AI option
 - 💻 OS-specific command generation (macOS, Linux, Windows)
 - 🎨 Rich terminal output formatting
-- ⚙️ Easy configuration with `sol --configure`
+- ⚙️ Easy configuration with `x --configure`
 
 ## Installation
 
 ### Option 1: Install from PyPI (Recommended)
 ```bash
-pip install solai
+pip install x
 ```
 
 ### Option 2: Install from Source
@@ -34,6 +34,8 @@ pip install -e .
 
 ## Quick Start
 
+After installation, you can use `x` or `!` as commands:
+
 ### Using Local AI (Msty Studio) - Recommended
 
 1. **Install and start Msty Studio**
@@ -42,7 +44,7 @@ pip install -e .
    - Msty Studio typically runs on `http://localhost:1234/v1`
 
 2. **First-time setup**
-   - Run any `sol` command to trigger the setup wizard
+   - Run any `x` or `!` command to trigger the setup wizard
    - Choose option 1 for "Local AI (Msty Studio)"
    - Enter your Msty Studio API base URL (default: `http://localhost:1234/v1`)
    - Enter your model name (default: `mistral`)
@@ -50,7 +52,9 @@ pip install -e .
 
 3. **Run a command:**
 ```bash
-sol find large files
+x find large files
+# or
+! find large files
 ```
 
 ### Using MLX (Apple Silicon) - Optimized for Mac
@@ -68,7 +72,9 @@ sol find large files
 
 3. **Run a command:**
 ```bash
-sol find large files
+x find large files
+# or
+! find large files
 ```
 
 ### Using OpenAI - Hyper Speed Most Efficient (Fastest)
@@ -81,7 +87,9 @@ sol find large files
 
 2. **Run a command:**
 ```bash
-sol find large files
+x find large files
+# or
+! find large files
 ```
 
 Example output:
@@ -99,16 +107,25 @@ Do you want to execute this command? [y/n]:
 
 ```bash
 # Find files
-sol find all pdf files in downloads
+x find all pdf files in downloads
+! find all pdf files in downloads
 
 # System maintenance
-sol clean up system cache
+x clean up system cache
+! clean up system cache
 
 # Network commands
-sol check if google.com is up
+x check if google.com is up
+! check if google.com is up
 
 # File operations
-sol create a backup of my documents
+x create a backup of my documents
+! create a backup of my documents
+
+# With admin privileges
+x --admin install package
+x -a update system
+! --admin install package
 ```
 
 ## Development

@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+import os
 
 # Read README.md if it exists
 long_description = 'A CLI assistant powered by OpenAI'
@@ -9,7 +10,7 @@ except:
     pass
 
 setup(
-    name="solai",
+    name="x",
     version="1.0.0",
     packages=find_packages(),
     install_requires=[
@@ -20,7 +21,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'sol=solai.app:main',
+            'x=solai.app:main',
+            '!=solai.app:main',
         ],
     },
     author="Jon Caraveo",
