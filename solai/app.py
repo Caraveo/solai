@@ -581,11 +581,16 @@ def extract_commands_from_response(result, trigger_words=None):
         
         # Check if we hit a trigger word
         for trigger in trigger_words:
-            if trigger.upper() in line.upper():
+            line_upper = line.upper()
+            trigger_upper = trigger.upper()
+            if trigger_upper in line_upper:
                 in_command_section = True
-                # Extract command from the same line if present
-                if trigger in line:
-                    after_trigger = line.split(trigger, 1)[-1].strip()
+                # Extract command from the same line if present (case-insensitive)
+                # Find the trigger word position (case-insensitive)
+                trigger_index = line_upper.find(trigger_upper)
+                if trigger_index != -1:
+                    # Extract everything after the trigger word
+                    after_trigger = line[trigger_index + len(trigger):].strip()
                     if after_trigger:
                         current_command.append(after_trigger)
                 break
