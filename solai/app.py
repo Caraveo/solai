@@ -9,7 +9,9 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
-from . import __version__
+
+# Version - defined here to avoid circular import
+__version__ = "1.0.2"
 
 console = Console()
 
