@@ -120,6 +120,151 @@ def migrate_old_config(config_path):
                 f.write(f"MODEL={model}\n")
             console.print("[green]Configuration set to Local AI[/green]")
 
+def reconfigure():
+    """Reconfigure existing settings"""
+    config_path = os.path.expanduser('~/.solai.env')
+    
+    if not os.path.exists(config_path):
+        console.print("[yellow]No existing configuration found. Running initial setup...[/yellow]")
+        setup_config()
+        return
+    
+    # Load existing configuration
+    load_dotenv(config_path)
+    current_provider = os.getenv('AI_PROVIDER', 'local').lower()
+    current_api_key = os.getenv('API_KEY') or os.getenv('OPENAI_API_KEY', 'not-needed')
+    current_model = os.getenv('MODEL', 'mistral' if current_provider == 'local' else 'gpt-3.5-turbo')
+    current_base_url = os.getenv('API_BASE_URL', 'http://localhost:1234/v1')
+    
+    console.print("[cyan]Current Configuration:[/cyan]")
+    console.print(f"  Provider: {current_provider}")
+    if current_provider == 'local':
+        console.print(f"  API Base URL: {current_base_url}")
+    console.print(f"  Model: {current_model}")
+    console.print(f"  API Key: {'*' * 20 if current_api_key != 'not-needed' else 'not-needed'}")
+    
+    console.print("\n[cyan]What would you like to configure?[/cyan]")
+    console.print("1. Change AI Provider (Local AI ↔ OpenAI Cloud)")
+    console.print("2. Update Model")
+    if current_provider == 'local':
+        console.print("3. Update API Base URL")
+        console.print("4. Update API Key")
+        console.print("5. Reset all configuration (start fresh)")
+        valid_choices = ["1", "2", "3", "4", "5"]
+    else:
+        console.print("3. Update API Key")
+        console.print("4. Reset all configuration (start fresh)")
+        valid_choices = ["1", "2", "3", "4"]
+    
+    choice = Prompt.ask("Enter your choice", choices=valid_choices, default="2")
+    
+    config_lines = []
+    
+    if choice == "1":
+        # Switch provider
+        console.print("\n[cyan]Choose your AI provider:[/cyan]")
+        console.print("1. Local AI (Msty Studio) - Recommended for privacy")
+        console.print("2. OpenAI Cloud")
+        
+        provider_choice = Prompt.ask("Enter your choice", choices=["1", "2"], default="1")
+        
+        if provider_choice == "1":
+            # Switch to Local AI
+            console.print("\n[blue]Configuring Local AI (Msty Studio)[/blue]")
+            base_url = Prompt.ask(
+                "Enter Msty Studio API base URL", 
+                default=current_base_url if current_provider == 'local' else "http://localhost:1234/v1"
+            )
+            api_key = Prompt.ask(
+                "Enter API key (or press Enter for 'not-needed')", 
+                default="not-needed"
+            )
+            model = Prompt.ask(
+                "Enter model name", 
+                default=current_model if current_provider == 'local' else "mistral"
+            )
+            
+            config_lines.append(f"AI_PROVIDER=local")
+            config_lines.append(f"API_BASE_URL={base_url}")
+            config_lines.append(f"API_KEY={api_key}")
+            config_lines.append(f"MODEL={model}")
+        else:
+            # Switch to OpenAI Cloud
+            console.print("\n[blue]Configuring OpenAI Cloud[/blue]")
+            console.print("[dim]Get your API key from: https://platform.openai.com/api-keys[/dim]")
+            
+            api_key = Prompt.ask("Enter your OpenAI API key", default=current_api_key if current_api_key != 'not-needed' else "")
+            model = Prompt.ask("Enter model name", default=current_model if current_provider == 'openai' else "gpt-3.5-turbo")
+            
+            config_lines.append(f"AI_PROVIDER=openai")
+            config_lines.append(f"API_KEY={api_key}")
+            config_lines.append(f"MODEL={model}")
+    
+    elif choice == "2":
+        # Update model only
+        new_model = Prompt.ask("Enter new model name", default=current_model)
+        
+        config_lines.append(f"AI_PROVIDER={current_provider}")
+        if current_provider == 'local':
+            config_lines.append(f"API_BASE_URL={current_base_url}")
+            config_lines.append(f"API_KEY={current_api_key}")
+        config_lines.append(f"MODEL={new_model}")
+    
+    elif choice == "3" and current_provider == 'local':
+        # Update API Base URL (local only)
+        new_base_url = Prompt.ask("Enter new API base URL", default=current_base_url)
+        
+        config_lines.append(f"AI_PROVIDER=local")
+        config_lines.append(f"API_BASE_URL={new_base_url}")
+        config_lines.append(f"API_KEY={current_api_key}")
+        config_lines.append(f"MODEL={current_model}")
+    
+    elif choice == "3" and current_provider == 'openai':
+        # Update API Key (OpenAI)
+        new_api_key = Prompt.ask("Enter new API key", default=current_api_key if current_api_key != 'not-needed' else "")
+        
+        config_lines.append(f"AI_PROVIDER=openai")
+        config_lines.append(f"API_KEY={new_api_key}")
+        config_lines.append(f"MODEL={current_model}")
+    
+    elif choice == "4" and current_provider == 'local':
+        # Update API Key (local)
+        new_api_key = Prompt.ask("Enter new API key (or press Enter for 'not-needed')", default=current_api_key)
+        
+        config_lines.append(f"AI_PROVIDER=local")
+        config_lines.append(f"API_BASE_URL={current_base_url}")
+        config_lines.append(f"API_KEY={new_api_key}")
+        config_lines.append(f"MODEL={current_model}")
+    
+    elif choice == "4" and current_provider == 'openai':
+        # Reset all (for OpenAI, option 4 is reset)
+        if Confirm.ask("[yellow]Are you sure you want to reset all configuration?[/yellow]"):
+            os.remove(config_path)
+            console.print("[green]Configuration reset. Running initial setup...[/green]")
+            setup_config()
+            return
+        else:
+            console.print("[yellow]Configuration reset cancelled.[/yellow]")
+            return
+    
+    elif choice == "5":
+        # Reset all (for local, option 5 is reset)
+        if Confirm.ask("[yellow]Are you sure you want to reset all configuration?[/yellow]"):
+            os.remove(config_path)
+            console.print("[green]Configuration reset. Running initial setup...[/green]")
+            setup_config()
+            return
+        else:
+            console.print("[yellow]Configuration reset cancelled.[/yellow]")
+            return
+    
+    # Write updated configuration
+    with open(config_path, 'w') as f:
+        f.write('\n'.join(config_lines) + '\n')
+    
+    console.print(f"\n[green]Configuration updated successfully![/green]")
+    console.print(f"[dim]Saved to {config_path}[/dim]")
+
 def load_config():
     """Load configuration and return client, model"""
     config_path = os.path.expanduser('~/.solai.env')
@@ -220,11 +365,17 @@ def get_command_suggestion(client, model, query):
         raise
 
 @click.command()
-@click.argument('query', nargs=-1)
-def main(query):
+@click.argument('query', nargs=-1, required=False)
+@click.option('--configure', '-c', is_flag=True, help='Configure solai settings')
+def main(query, configure):
     """CLI Assistant - Get command suggestions for your queries"""
+    if configure:
+        reconfigure()
+        return
+    
     if not query:
         console.print("[red]Please provide a query[/red]")
+        console.print("[dim]Use 'sol --configure' to configure settings[/dim]")
         sys.exit(1)
 
     # Load configuration and initialize client
