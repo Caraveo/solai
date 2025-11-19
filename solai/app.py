@@ -598,28 +598,60 @@ def extract_commands_from_response(result, trigger_words=None):
         if in_command_section:
             # Skip markdown code block markers
             if line_stripped in ['```', '```bash', '```sh', '```shell']:
-                continue
-            
-            # If we hit another markdown section or reasoning, stop collecting
-            if line_stripped.startswith('**') and ('Reasoning' in line_stripped or 'Answer' in line_stripped):
+                # If we hit closing code block, end command collection
                 if current_command:
-                    commands.append('\n'.join(current_command).strip())
-                    current_command = []
-                in_command_section = False
-                continue
-            
-            # Collect command lines (skip empty lines at start)
-            if line_stripped or current_command:
-                # Clean up markdown formatting
-                cleaned = line.replace('`', '').replace('**', '').strip()
-                if cleaned:
-                    current_command.append(cleaned)
-                elif current_command:
-                    # Empty line after commands - end this command
                     cmd = '\n'.join(current_command).strip()
                     if cmd:
                         commands.append(cmd)
                     current_command = []
+                in_command_section = False
+                continue
+            
+            # Stop collecting if we hit another section marker
+            if (line_stripped.startswith('**') or 
+                line_stripped.startswith('[') or 
+                line_stripped.startswith('---') or
+                'Reasoning' in line_stripped or 
+                'Answer' in line_stripped or
+                line_stripped.upper().startswith('COMMAND:') or
+                line_stripped.upper().startswith('EXECUTE:') or
+                line_stripped.upper().startswith('RUN:')):
+                if current_command:
+                    cmd = '\n'.join(current_command).strip()
+                    if cmd:
+                        commands.append(cmd)
+                    current_command = []
+                # If it's a new trigger, start new command section
+                if not (line_stripped.upper().startswith('COMMAND:') or
+                        line_stripped.upper().startswith('EXECUTE:') or
+                        line_stripped.upper().startswith('RUN:')):
+                    in_command_section = False
+                continue
+            
+            # Skip lines that are clearly not commands (too long, contain reasoning words)
+            if len(line_stripped) > 200 or any(word in line_stripped.lower() for word in ['reasoning', 'explanation', 'this will', 'note:', 'tip:']):
+                if current_command:
+                    # End current command if we hit explanatory text
+                    cmd = '\n'.join(current_command).strip()
+                    if cmd:
+                        commands.append(cmd)
+                    current_command = []
+                in_command_section = False
+                continue
+            
+            # Collect command lines
+            if line_stripped:
+                # Clean up markdown formatting
+                cleaned = line.replace('`', '').replace('**', '').strip()
+                if cleaned:
+                    current_command.append(cleaned)
+            elif current_command:
+                # Empty line after commands - end this command
+                cmd = '\n'.join(current_command).strip()
+                if cmd:
+                    commands.append(cmd)
+                current_command = []
+                in_command_section = False
     
     # Add last command if any
     if current_command:
@@ -759,13 +791,18 @@ def main(query, configure):
         
         # Extract reasoning (everything before commands)
         reasoning = full_response
+        # Find the earliest trigger word position
+        earliest_pos = len(reasoning)
         for trigger in ['COMMAND:', 'EXECUTE:', 'RUN:', '```bash', '```sh', '```']:
-            if trigger.upper() in reasoning.upper():
-                # Split at first trigger word
-                parts = reasoning.split(trigger, 1)
-                if len(parts) > 0:
-                    reasoning = parts[0].strip()
-                break
+            trigger_upper = trigger.upper()
+            reasoning_upper = reasoning.upper()
+            if trigger_upper in reasoning_upper:
+                pos = reasoning_upper.find(trigger_upper)
+                if pos < earliest_pos:
+                    earliest_pos = pos
+        
+        if earliest_pos < len(reasoning):
+            reasoning = reasoning[:earliest_pos].strip()
         
         # Display reasoning
         console.print("\n[cyan]Command Reasoning:[/cyan]")
