@@ -29,7 +29,7 @@ def setup_config():
     console.print("\n[cyan]Choose your AI provider:[/cyan]")
     console.print("1. Local AI (Msty Studio) - Recommended for privacy")
     console.print("2. MLX - Apple Silicon optimized local AI")
-    console.print("3. OpenAI Cloud")
+    console.print("3. OpenAI - Hyper Speed Most Efficient (Fastest)")
     
     choice = Prompt.ask("Enter your choice", choices=["1", "2", "3"], default="1")
     
@@ -82,7 +82,7 @@ def setup_config():
         config_lines.append(f"MODEL={model}")
     else:
         # OpenAI Cloud setup
-        console.print("\n[blue]Setting up OpenAI Cloud[/blue]")
+        console.print("\n[blue]Setting up OpenAI - Hyper Speed Most Efficient (Fastest)[/blue]")
         console.print("[dim]Get your API key from: https://platform.openai.com/api-keys[/dim]")
         
         api_key = Prompt.ask("Enter your OpenAI API key", type=str)
@@ -105,8 +105,8 @@ def migrate_old_config(config_path):
     
     if old_api_key:
         console.print("[yellow]Detected old configuration format. Migrating...[/yellow]")
-        console.print("[cyan]Would you like to use OpenAI Cloud (your existing key) or switch to a local AI provider?[/cyan]")
-        console.print("1. Keep OpenAI Cloud (use existing API key)")
+        console.print("[cyan]Would you like to use OpenAI - Hyper Speed Most Efficient (Fastest) (your existing key) or switch to a local AI provider?[/cyan]")
+        console.print("1. Keep OpenAI - Hyper Speed Most Efficient (Fastest) (use existing API key)")
         console.print("2. Switch to Local AI (Msty Studio)")
         console.print("3. Switch to MLX (Apple Silicon optimized)")
         
@@ -118,7 +118,7 @@ def migrate_old_config(config_path):
                 f.write(f"AI_PROVIDER=openai\n")
                 f.write(f"API_KEY={old_api_key}\n")
                 f.write(f"MODEL=gpt-3.5-turbo\n")
-            console.print("[green]Configuration migrated to OpenAI Cloud format[/green]")
+            console.print("[green]Configuration migrated to OpenAI - Hyper Speed Most Efficient (Fastest) format[/green]")
         elif choice == "2":
             # Switch to local AI (Msty Studio)
             console.print("\n[blue]Setting up local AI with Msty Studio[/blue]")
@@ -204,7 +204,7 @@ def reconfigure():
     console.print(f"  API Key: {'*' * 20 if current_api_key != 'not-needed' else 'not-needed'}")
     
     console.print("\n[cyan]What would you like to configure?[/cyan]")
-    console.print("1. Change AI Provider (Local AI ↔ MLX ↔ OpenAI Cloud)")
+    console.print("1. Change AI Provider (Local AI ↔ MLX ↔ OpenAI - Hyper Speed Most Efficient (Fastest))")
     console.print("2. Update Model")
     if current_provider in ['local', 'mlx']:
         console.print("3. Update API Base URL")
@@ -225,7 +225,7 @@ def reconfigure():
         console.print("\n[cyan]Choose your AI provider:[/cyan]")
         console.print("1. Local AI (Msty Studio) - Recommended for privacy")
         console.print("2. MLX - Apple Silicon optimized local AI")
-        console.print("3. OpenAI Cloud")
+        console.print("3. OpenAI - Hyper Speed Most Efficient (Fastest)")
         
         provider_choice = Prompt.ask("Enter your choice", choices=["1", "2", "3"], default="1")
         
@@ -271,7 +271,7 @@ def reconfigure():
             config_lines.append(f"MODEL={model}")
         else:
             # Switch to OpenAI Cloud
-            console.print("\n[blue]Configuring OpenAI Cloud[/blue]")
+            console.print("\n[blue]Configuring OpenAI - Hyper Speed Most Efficient (Fastest)[/blue]")
             console.print("[dim]Get your API key from: https://platform.openai.com/api-keys[/dim]")
             
             api_key = Prompt.ask("Enter your OpenAI API key", default=current_api_key if current_api_key != 'not-needed' else "")

@@ -12,7 +12,7 @@ It came in a dream. "Thank you for this gift."
 - 🔒 Secure API key storage
 - 🏠 **Local AI support via Msty Studio** - Run completely offline and private
 - 🍎 **MLX support** - Apple Silicon optimized local AI
-- ☁️ Cloud AI support via OpenAI
+- ⚡ **OpenAI - Hyper Speed Most Efficient (Fastest)** - Fastest cloud AI option
 - 💻 OS-specific command generation (macOS, Linux, Windows)
 - 🎨 Rich terminal output formatting
 - ⚙️ Easy configuration with `sol --configure`
@@ -71,11 +71,11 @@ sol find large files
 sol find large files
 ```
 
-### Using OpenAI Cloud
+### Using OpenAI - Hyper Speed Most Efficient (Fastest)
 
 1. **First-time setup**
    - Run any `sol` command to trigger the setup wizard
-   - Choose option 2 for "OpenAI Cloud"
+   - Choose option 3 for "OpenAI - Hyper Speed Most Efficient (Fastest)"
    - Get your API key from: https://platform.openai.com/api-keys
    - Configuration will be securely stored in `~/.solai.env`
 
@@ -126,7 +126,7 @@ pip install -e .
 - Python 3.6+
 - **For Local AI**: Msty Studio installed and running
 - **For MLX**: MLX server installed and running (Apple Silicon optimized)
-- **For Cloud AI**: OpenAI API key
+- **For OpenAI - Hyper Speed Most Efficient (Fastest)**: OpenAI API key
 - Required packages:
   - click
   - python-dotenv
@@ -153,7 +153,7 @@ API_KEY=not-needed
 MODEL=mlx-community/Qwen2.5-0.5B-Instruct-4bit
 ```
 
-### Cloud AI Configuration (OpenAI)
+### OpenAI - Hyper Speed Most Efficient (Fastest) Configuration
 ```env
 AI_PROVIDER=openai
 API_KEY=your-api-key-here
