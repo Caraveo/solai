@@ -9,6 +9,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
+from . import __version__
 
 console = Console()
 
@@ -794,17 +795,32 @@ def get_command_suggestion(client, model, query):
 
 @click.command()
 @click.argument('query', nargs=-1, required=False)
-@click.option('--configure', '-c', is_flag=True, help='Configure solai settings')
+@click.option('--configure', '-c', is_flag=True, help='Configure x settings')
 @click.option('--admin', '-a', is_flag=True, help='Run commands with sudo (administrative privileges)')
-def main(query, configure, admin):
-    """CLI Assistant - Get command suggestions for your queries"""
+@click.option('--version', '-v', is_flag=True, help='Show version information')
+def main(query, configure, admin, version):
+    """CLI Assistant - Get command suggestions for your queries
+    
+    Examples:
+        x find large files
+        x --configure
+        x --admin install package
+        x --version
+    """
+    if version:
+        console.print(f"[cyan]x (xcli-ai) version {__version__}[/cyan]")
+        console.print(f"[dim]Install via: pip install xcli-ai[/dim]")
+        console.print(f"[dim]GitHub: https://github.com/caraveo/solai[/dim]")
+        return
+    
     if configure:
         reconfigure()
         return
     
     if not query:
         console.print("[red]Please provide a query[/red]")
-        console.print("[dim]Use 'sol --configure' to configure settings[/dim]")
+        console.print("[dim]Use 'x --configure' to configure settings[/dim]")
+        console.print("[dim]Use 'x --help' for more information[/dim]")
         sys.exit(1)
 
     # Load configuration and initialize client

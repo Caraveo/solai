@@ -11,7 +11,7 @@ except:
 
 setup(
     name="xcli-ai",
-    version="1.0.1",
+    version="1.0.2",
     packages=find_packages(),
     install_requires=[
         'click>=8.0.0',
