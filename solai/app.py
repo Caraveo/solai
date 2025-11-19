@@ -567,12 +567,43 @@ def load_config():
     return client, model
 
 def extract_commands_from_response(result, trigger_words=None):
-    """Extract commands from AI response using trigger words"""
+    """Extract commands from AI response using trigger words and code blocks"""
     if trigger_words is None:
-        trigger_words = ['COMMAND:', 'EXECUTE:', 'RUN:', '```bash', '```sh', '```']
+        trigger_words = ['```bash', '```sh', '```shell', '```', 'COMMAND:', 'EXECUTE:', 'RUN:']
     
-    lines = result.split('\n')
     commands = []
+    
+    # First, prioritize code blocks - they're the cleanest format
+    if '```' in result:
+        parts = result.split('```')
+        for i, part in enumerate(parts):
+            if i % 2 == 1:  # Odd indices are code blocks
+                lines = part.strip().split('\n')
+                # Skip language identifier (bash, sh, shell)
+                if lines and lines[0].lower() in ['bash', 'sh', 'shell']:
+                    lines = lines[1:]
+                # Collect all non-empty lines as commands
+                code_block_commands = []
+                for line in lines:
+                    line = line.strip()
+                    if line and not line.startswith('#') and not line.startswith('//'):
+                        code_block_commands.append(line)
+                
+                if code_block_commands:
+                    # If multiple lines, treat each as separate command
+                    # If single line, treat as one command
+                    if len(code_block_commands) == 1:
+                        commands.append(code_block_commands[0])
+                    else:
+                        # Multiple commands in one block - split by newlines
+                        commands.extend(code_block_commands)
+        
+        # If we found commands in code blocks, return them
+        if commands:
+            return commands
+    
+    # Fallback to trigger word extraction if no code blocks found
+    lines = result.split('\n')
     in_command_section = False
     current_command = []
     
@@ -695,7 +726,7 @@ def get_command_suggestion(client, model, query):
             messages=[
                 {
                     "role": "system", 
-                    "content": f"You are a CLI assistant for {os_type}. You can provide reasoning and explanations. When you have commands to execute, mark them with 'COMMAND:' or put them in a code block (```bash ... ```). You can provide multiple commands for complex tasks. Format: Provide your reasoning, then use 'COMMAND:' followed by the command(s) to execute. Each command should be on its own line. Ensure all commands are compatible with {os_type}."
+                    "content": f"You are a CLI assistant for {os_type}. Provide your reasoning first, then put all commands to execute in a code block. Format: Provide reasoning, then use ```bash followed by the command(s) to execute, one per line, ending with ```. You can provide multiple commands for complex tasks. Ensure all commands are compatible with {os_type}."
                 },
                 {"role": "user", "content": query}
             ]
@@ -789,11 +820,19 @@ def main(query, configure):
         # Get full response and commands
         full_response, commands = get_command_suggestion(client, model, full_query)
         
-        # Extract reasoning (everything before commands)
+        # Extract reasoning (everything before code blocks or trigger words)
         reasoning = full_response
-        # Find the earliest trigger word position
+        # Find the earliest code block or trigger word position
         earliest_pos = len(reasoning)
-        for trigger in ['COMMAND:', 'EXECUTE:', 'RUN:', '```bash', '```sh', '```']:
+        
+        # Check for code blocks first (most common format)
+        if '```' in reasoning:
+            pos = reasoning.find('```')
+            if pos < earliest_pos:
+                earliest_pos = pos
+        
+        # Check for trigger words
+        for trigger in ['COMMAND:', 'EXECUTE:', 'RUN:']:
             trigger_upper = trigger.upper()
             reasoning_upper = reasoning.upper()
             if trigger_upper in reasoning_upper:
