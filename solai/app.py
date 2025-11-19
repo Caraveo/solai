@@ -141,10 +141,19 @@ def load_config():
     # Initialize client based on provider
     if provider == 'local':
         # Local AI (Msty Studio)
-        client = OpenAI(
-            base_url=base_url,
-            api_key=api_key if api_key != 'not-needed' else None
-        )
+        # OpenAI client requires api_key parameter even for local servers
+        # Use a dummy value if not provided
+        if api_key and api_key != 'not-needed':
+            client = OpenAI(
+                base_url=base_url,
+                api_key=api_key
+            )
+        else:
+            # Use dummy key for local servers that don't require authentication
+            client = OpenAI(
+                base_url=base_url,
+                api_key="dummy-key-not-needed"
+            )
     else:
         # OpenAI Cloud
         client = OpenAI(api_key=api_key)

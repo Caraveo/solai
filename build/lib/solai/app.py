@@ -75,6 +75,51 @@ def setup_config():
     console.print(f"\n[green]Configuration saved to {config_path}[/green]")
     return config_lines
 
+def migrate_old_config(config_path):
+    """Migrate old config format to new format"""
+    load_dotenv(config_path)
+    old_api_key = os.getenv('OPENAI_API_KEY')
+    
+    if old_api_key:
+        console.print("[yellow]Detected old configuration format. Migrating...[/yellow]")
+        console.print("[cyan]Would you like to use OpenAI Cloud (your existing key) or switch to Local AI (Msty Studio)?[/cyan]")
+        console.print("1. Keep OpenAI Cloud (use existing API key)")
+        console.print("2. Switch to Local AI (Msty Studio)")
+        
+        choice = Prompt.ask("Enter your choice", choices=["1", "2"], default="1")
+        
+        if choice == "1":
+            # Migrate to new OpenAI format
+            with open(config_path, 'w') as f:
+                f.write(f"AI_PROVIDER=openai\n")
+                f.write(f"API_KEY={old_api_key}\n")
+                f.write(f"MODEL=gpt-3.5-turbo\n")
+            console.print("[green]Configuration migrated to OpenAI Cloud format[/green]")
+        else:
+            # Switch to local AI
+            console.print("\n[blue]Setting up local AI with Msty Studio[/blue]")
+            console.print("[dim]Make sure Msty Studio is running locally[/dim]")
+            
+            base_url = Prompt.ask(
+                "Enter Msty Studio API base URL", 
+                default="http://localhost:1234/v1"
+            )
+            api_key = Prompt.ask(
+                "Enter API key (or press Enter for 'not-needed')", 
+                default="not-needed"
+            )
+            model = Prompt.ask(
+                "Enter model name", 
+                default="mistral"
+            )
+            
+            with open(config_path, 'w') as f:
+                f.write(f"AI_PROVIDER=local\n")
+                f.write(f"API_BASE_URL={base_url}\n")
+                f.write(f"API_KEY={api_key}\n")
+                f.write(f"MODEL={model}\n")
+            console.print("[green]Configuration set to Local AI[/green]")
+
 def load_config():
     """Load configuration and return client, model"""
     config_path = os.path.expanduser('~/.solai.env')
@@ -83,8 +128,13 @@ def load_config():
     
     load_dotenv(config_path)
     
+    # Check if old config format (has OPENAI_API_KEY but no AI_PROVIDER)
+    if os.getenv('OPENAI_API_KEY') and not os.getenv('AI_PROVIDER'):
+        migrate_old_config(config_path)
+        load_dotenv(config_path)  # Reload after migration
+    
     provider = os.getenv('AI_PROVIDER', 'local').lower()
-    api_key = os.getenv('API_KEY', 'not-needed')
+    api_key = os.getenv('API_KEY') or os.getenv('OPENAI_API_KEY', 'not-needed')
     model = os.getenv('MODEL', 'mistral' if provider == 'local' else 'gpt-3.5-turbo')
     base_url = os.getenv('API_BASE_URL', 'http://localhost:1234/v1')
     
@@ -125,10 +175,20 @@ def get_command_suggestion(client, model, query):
         return result.strip(), ""
     except Exception as e:
         # If local AI fails, provide helpful error message
-        if "Connection" in str(e) or "refused" in str(e).lower():
-            console.print("\n[red]Error: Could not connect to local AI server[/red]")
-            console.print("[yellow]Make sure Msty Studio is running and accessible at the configured URL[/yellow]")
-            console.print(f"[dim]Error details: {str(e)}[/dim]")
+        error_str = str(e).lower()
+        if "connection" in error_str or "refused" in error_str or "connect" in error_str:
+            console.print("\n[red]Error: Could not connect to AI server[/red]")
+            console.print("[yellow]This might be because:[/yellow]")
+            console.print("  • Msty Studio is not running (for local AI)")
+            console.print("  • The API endpoint URL is incorrect")
+            console.print("  • There's a network connectivity issue")
+            console.print(f"\n[dim]Error details: {str(e)}[/dim]")
+            
+            if Confirm.ask("\nWould you like to reconfigure solai?"):
+                config_path = os.path.expanduser('~/.solai.env')
+                if os.path.exists(config_path):
+                    os.remove(config_path)
+                    console.print("[green]Configuration reset. Please run sol again to reconfigure.[/green]")
         raise
 
 @click.command()
@@ -163,7 +223,7 @@ def main(query):
         if Confirm.ask("Do you want to execute this command?"):
             os.system(command)
     except Exception as e:
-        console.print(f"[red]Error: {str(e)}[/red]")
+        # Error handling is done in get_command_suggestion
         sys.exit(1)
 
 if __name__ == "__main__":
