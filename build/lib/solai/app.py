@@ -576,7 +576,7 @@ def get_command_suggestion(client, model, query):
             messages=[
                 {
                     "role": "system", 
-                    "content": f"You are a CLI assistant for {os_type}. Return the command followed by '||' and a brief explanation of what it does. Format: 'command || explanation'. Ensure all commands are compatible with {os_type}."
+                    "content": f"You are a CLI assistant for {os_type}. Return ONLY the command followed by '||' and a brief explanation. Format: 'command || explanation'. Do NOT include reasoning, markdown formatting, or any other text. Just the command and explanation separated by ||. Ensure all commands are compatible with {os_type}."
                 },
                 {"role": "user", "content": query}
             ]
@@ -590,11 +590,74 @@ def get_command_suggestion(client, model, query):
         
         result = result.strip()
         
+        # Clean up the response - remove markdown formatting and reasoning blocks
+        # Look for common patterns like [Answer], [Command], or lines with ||
+        lines = result.split('\n')
+        command_line = None
+        
+        # First, try to find a line with || separator
+        for line in lines:
+            line = line.strip()
+            # Skip markdown headers, reasoning blocks, etc.
+            if line.startswith('**') or line.startswith('[') and ']' in line:
+                continue
+            if '||' in line:
+                command_line = line
+                break
+        
+        # If no || found, look for the last line that looks like a command
+        if not command_line:
+            for line in reversed(lines):
+                line = line.strip()
+                # Skip empty lines, markdown, reasoning
+                if not line or line.startswith('**') or line.startswith('[') or line.startswith('---'):
+                    continue
+                # If it looks like a command (no markdown, not too long explanation)
+                if not line.startswith('*') and len(line) < 200:
+                    command_line = line
+                    break
+        
+        # If still nothing, use the original result but clean it
+        if not command_line:
+            # Remove markdown code blocks and reasoning sections
+            cleaned = result
+            # Remove markdown code blocks
+            if '```' in cleaned:
+                parts = cleaned.split('```')
+                # Take the last code block or the content after last ```
+                if len(parts) > 1:
+                    cleaned = parts[-1].strip()
+            # Remove reasoning blocks
+            if '[Reasoning]' in cleaned or '**[Reasoning]**' in cleaned:
+                # Take everything after [Answer] or ---
+                if '[Answer]' in cleaned or '**[Answer]**' in cleaned:
+                    parts = cleaned.split('[Answer]')
+                    if len(parts) > 1:
+                        cleaned = parts[-1].strip()
+                    parts = cleaned.split('**[Answer]**')
+                    if len(parts) > 1:
+                        cleaned = parts[-1].strip()
+                elif '---' in cleaned:
+                    parts = cleaned.split('---')
+                    if len(parts) > 1:
+                        cleaned = parts[-1].strip()
+            command_line = cleaned.strip()
+        
         # Split command and explanation
-        if '||' in result:
-            command, explanation = result.split('||', 1)
-            return command.strip(), explanation.strip()
-        return result.strip(), ""
+        if '||' in command_line:
+            command, explanation = command_line.split('||', 1)
+            command = command.strip()
+            explanation = explanation.strip()
+        else:
+            # No separator found, try to extract command (first word/phrase)
+            command = command_line.strip()
+            explanation = ""
+        
+        # Final cleanup - remove any remaining markdown
+        command = command.replace('**', '').replace('`', '').strip()
+        explanation = explanation.replace('**', '').replace('`', '').strip()
+        
+        return command, explanation
     except Exception as e:
         # If local AI fails, provide helpful error message
         error_str = str(e).lower()

@@ -566,8 +566,90 @@ def load_config():
     
     return client, model
 
+def extract_commands_from_response(result, trigger_words=None):
+    """Extract commands from AI response using trigger words"""
+    if trigger_words is None:
+        trigger_words = ['COMMAND:', 'EXECUTE:', 'RUN:', '```bash', '```sh', '```']
+    
+    lines = result.split('\n')
+    commands = []
+    in_command_section = False
+    current_command = []
+    
+    for line in lines:
+        line_stripped = line.strip()
+        
+        # Check if we hit a trigger word
+        for trigger in trigger_words:
+            if trigger.upper() in line.upper():
+                in_command_section = True
+                # Extract command from the same line if present
+                if trigger in line:
+                    after_trigger = line.split(trigger, 1)[-1].strip()
+                    if after_trigger:
+                        current_command.append(after_trigger)
+                break
+        
+        if in_command_section:
+            # Skip markdown code block markers
+            if line_stripped in ['```', '```bash', '```sh', '```shell']:
+                continue
+            
+            # If we hit another markdown section or reasoning, stop collecting
+            if line_stripped.startswith('**') and ('Reasoning' in line_stripped or 'Answer' in line_stripped):
+                if current_command:
+                    commands.append('\n'.join(current_command).strip())
+                    current_command = []
+                in_command_section = False
+                continue
+            
+            # Collect command lines (skip empty lines at start)
+            if line_stripped or current_command:
+                # Clean up markdown formatting
+                cleaned = line.replace('`', '').replace('**', '').strip()
+                if cleaned:
+                    current_command.append(cleaned)
+                elif current_command:
+                    # Empty line after commands - end this command
+                    cmd = '\n'.join(current_command).strip()
+                    if cmd:
+                        commands.append(cmd)
+                    current_command = []
+    
+    # Add last command if any
+    if current_command:
+        cmd = '\n'.join(current_command).strip()
+        if cmd:
+            commands.append(cmd)
+    
+    # If no trigger found, try to find commands in code blocks or after separators
+    if not commands:
+        # Look for code blocks
+        if '```' in result:
+            parts = result.split('```')
+            for i, part in enumerate(parts):
+                if i % 2 == 1:  # Odd indices are code blocks
+                    lines = part.strip().split('\n')
+                    # Skip language identifier
+                    if lines and lines[0] in ['bash', 'sh', 'shell']:
+                        lines = lines[1:]
+                    cmd = '\n'.join(lines).strip()
+                    if cmd:
+                        commands.append(cmd)
+        
+        # Fallback: look for lines with || separator (old format)
+        all_lines = result.split('\n')
+        for line in all_lines:
+            if '||' in line:
+                cmd = line.split('||')[0].strip()
+                if cmd:
+                    commands.append(cmd)
+                    break
+    
+    return commands
+
 def get_command_suggestion(client, model, query):
-    """Get command suggestion from AI"""
+    """Get command suggestion from AI with reasoning support"""
     os_type = get_system_info()
     
     try:
@@ -576,7 +658,7 @@ def get_command_suggestion(client, model, query):
             messages=[
                 {
                     "role": "system", 
-                    "content": f"You are a CLI assistant for {os_type}. Return ONLY the command followed by '||' and a brief explanation. Format: 'command || explanation'. Do NOT include reasoning, markdown formatting, or any other text. Just the command and explanation separated by ||. Ensure all commands are compatible with {os_type}."
+                    "content": f"You are a CLI assistant for {os_type}. You can provide reasoning and explanations. When you have commands to execute, mark them with 'COMMAND:' or put them in a code block (```bash ... ```). You can provide multiple commands for complex tasks. Format: Provide your reasoning, then use 'COMMAND:' followed by the command(s) to execute. Each command should be on its own line. Ensure all commands are compatible with {os_type}."
                 },
                 {"role": "user", "content": query}
             ]
@@ -590,74 +672,11 @@ def get_command_suggestion(client, model, query):
         
         result = result.strip()
         
-        # Clean up the response - remove markdown formatting and reasoning blocks
-        # Look for common patterns like [Answer], [Command], or lines with ||
-        lines = result.split('\n')
-        command_line = None
+        # Extract commands using trigger words
+        commands = extract_commands_from_response(result)
         
-        # First, try to find a line with || separator
-        for line in lines:
-            line = line.strip()
-            # Skip markdown headers, reasoning blocks, etc.
-            if line.startswith('**') or line.startswith('[') and ']' in line:
-                continue
-            if '||' in line:
-                command_line = line
-                break
-        
-        # If no || found, look for the last line that looks like a command
-        if not command_line:
-            for line in reversed(lines):
-                line = line.strip()
-                # Skip empty lines, markdown, reasoning
-                if not line or line.startswith('**') or line.startswith('[') or line.startswith('---'):
-                    continue
-                # If it looks like a command (no markdown, not too long explanation)
-                if not line.startswith('*') and len(line) < 200:
-                    command_line = line
-                    break
-        
-        # If still nothing, use the original result but clean it
-        if not command_line:
-            # Remove markdown code blocks and reasoning sections
-            cleaned = result
-            # Remove markdown code blocks
-            if '```' in cleaned:
-                parts = cleaned.split('```')
-                # Take the last code block or the content after last ```
-                if len(parts) > 1:
-                    cleaned = parts[-1].strip()
-            # Remove reasoning blocks
-            if '[Reasoning]' in cleaned or '**[Reasoning]**' in cleaned:
-                # Take everything after [Answer] or ---
-                if '[Answer]' in cleaned or '**[Answer]**' in cleaned:
-                    parts = cleaned.split('[Answer]')
-                    if len(parts) > 1:
-                        cleaned = parts[-1].strip()
-                    parts = cleaned.split('**[Answer]**')
-                    if len(parts) > 1:
-                        cleaned = parts[-1].strip()
-                elif '---' in cleaned:
-                    parts = cleaned.split('---')
-                    if len(parts) > 1:
-                        cleaned = parts[-1].strip()
-            command_line = cleaned.strip()
-        
-        # Split command and explanation
-        if '||' in command_line:
-            command, explanation = command_line.split('||', 1)
-            command = command.strip()
-            explanation = explanation.strip()
-        else:
-            # No separator found, try to extract command (first word/phrase)
-            command = command_line.strip()
-            explanation = ""
-        
-        # Final cleanup - remove any remaining markdown
-        command = command.replace('**', '').replace('`', '').strip()
-        explanation = explanation.replace('**', '').replace('`', '').strip()
-        
-        return command, explanation
+        # Return full response and extracted commands
+        return result, commands
     except Exception as e:
         # If local AI fails, provide helpful error message
         error_str = str(e).lower()
@@ -730,18 +749,46 @@ def main(query, configure):
     full_query = ' '.join(query)
     
     try:
-        # Get command suggestion
-        command, explanation = get_command_suggestion(client, model, full_query)
+        # Get full response and commands
+        full_response, commands = get_command_suggestion(client, model, full_query)
         
-        # Display suggestion with explanation
-        console.print("\n[green]Suggested command:[/green]")
-        console.print(f"[yellow]{command}[/yellow]")
-        if explanation:
-            console.print(f"[blue]→ {explanation}[/blue]\n")
+        # Display the full response (including reasoning)
+        console.print("\n[cyan]AI Response:[/cyan]")
+        console.print(full_response)
+        console.print()  # Empty line
+        
+        if not commands:
+            console.print("[yellow]No commands found in response. The AI may have only provided reasoning.[/yellow]")
+            return
+        
+        # Display commands to be executed
+        if len(commands) == 1:
+            console.print("[green]Command to execute:[/green]")
+            console.print(f"[yellow]{commands[0]}[/yellow]\n")
+        else:
+            console.print(f"[green]Commands to execute ({len(commands)}):[/green]")
+            for i, cmd in enumerate(commands, 1):
+                console.print(f"[yellow]{i}. {cmd}[/yellow]")
+            console.print()
         
         # Ask for confirmation
-        if Confirm.ask("Do you want to execute this command?"):
-            os.system(command)
+        if Confirm.ask("Do you want to execute these command(s)?"):
+            for i, command in enumerate(commands, 1):
+                if len(commands) > 1:
+                    console.print(f"\n[cyan]Executing command {i}/{len(commands)}:[/cyan]")
+                    console.print(f"[dim]{command}[/dim]")
+                else:
+                    console.print(f"\n[cyan]Executing:[/cyan]")
+                    console.print(f"[dim]{command}[/dim]")
+                
+                # Execute the command
+                exit_code = os.system(command)
+                
+                if exit_code != 0:
+                    console.print(f"[yellow]Command exited with code {exit_code}[/yellow]")
+                    if len(commands) > 1:
+                        if not Confirm.ask("Continue with remaining commands?"):
+                            break
     except KeyboardInterrupt:
         console.print("\n[yellow]Cancelled by user[/yellow]")
         sys.exit(0)
