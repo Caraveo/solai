@@ -34,7 +34,7 @@ pip install -e .
 
 ## Quick Start
 
-After installation, you can use `x` or `!` as commands:
+After installation, you can use the `x` command:
 
 ### Using Local AI (Msty Studio) - Recommended
 
@@ -44,7 +44,7 @@ After installation, you can use `x` or `!` as commands:
    - Msty Studio typically runs on `http://localhost:1234/v1`
 
 2. **First-time setup**
-   - Run any `x` or `!` command to trigger the setup wizard
+   - Run any `x` command to trigger the setup wizard
    - Choose option 1 for "Local AI (Msty Studio)"
    - Enter your Msty Studio API base URL (default: `http://localhost:1234/v1`)
    - Enter your model name (default: `mistral`)
@@ -53,8 +53,6 @@ After installation, you can use `x` or `!` as commands:
 3. **Run a command:**
 ```bash
 x find large files
-# or
-! find large files
 ```
 
 ### Using MLX (Apple Silicon) - Optimized for Mac
@@ -64,7 +62,7 @@ x find large files
    - MLX server typically runs on `http://localhost:11973/v1`
 
 2. **First-time setup**
-   - Run any `x` or `!` command to trigger the setup wizard
+   - Run any `x` command to trigger the setup wizard
    - Choose option 2 for "MLX - Apple Silicon optimized local AI"
    - Enter your MLX API base URL (default: `http://localhost:11973/v1`)
    - Enter your model name (default: `mlx-community/Qwen2.5-0.5B-Instruct-4bit`)
@@ -73,14 +71,12 @@ x find large files
 3. **Run a command:**
 ```bash
 x find large files
-# or
-! find large files
 ```
 
 ### Using OpenAI - Hyper Speed Most Efficient (Fastest)
 
 1. **First-time setup**
-   - Run any `x` or `!` command to trigger the setup wizard
+   - Run any `x` command to trigger the setup wizard
    - Choose option 3 for "OpenAI - Hyper Speed Most Efficient (Fastest)"
    - Get your API key from: https://platform.openai.com/api-keys
    - Configuration will be securely stored in `~/.solai.env`
@@ -88,8 +84,6 @@ x find large files
 2. **Run a command:**
 ```bash
 x find large files
-# or
-! find large files
 ```
 
 Example output:
@@ -108,24 +102,19 @@ Do you want to execute this command? [y/n]:
 ```bash
 # Find files
 x find all pdf files in downloads
-! find all pdf files in downloads
 
 # System maintenance
 x clean up system cache
-! clean up system cache
 
 # Network commands
 x check if google.com is up
-! check if google.com is up
 
 # File operations
 x create a backup of my documents
-! create a backup of my documents
 
 # With admin privileges
 x --admin install package
 x -a update system
-! --admin install package
 ```
 
 ## Development
@@ -177,7 +166,7 @@ API_KEY=your-api-key-here
 MODEL=gpt-3.5-turbo
 ```
 
-To reconfigure, simply delete `~/.solai.env` and run any `x` or `!` command to trigger the setup process again, or use `x --configure` for an interactive configuration menu.
+To reconfigure, simply delete `~/.solai.env` and run any `x` command to trigger the setup process again, or use `x --configure` for an interactive configuration menu.
 
 ## Contributing
 

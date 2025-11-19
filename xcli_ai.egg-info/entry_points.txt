@@ -1,3 +1,2 @@
 [console_scripts]
-! = solai.app:main
 x = solai.app:main

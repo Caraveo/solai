@@ -11,7 +11,7 @@ except:
 
 setup(
     name="xcli-ai",
-    version="1.0.0",
+    version="1.0.1",
     packages=find_packages(),
     install_requires=[
         'click>=8.0.0',
@@ -22,7 +22,6 @@ setup(
     entry_points={
         'console_scripts': [
             'x=solai.app:main',
-            '!=solai.app:main',
         ],
     },
     author="Jon Caraveo",
