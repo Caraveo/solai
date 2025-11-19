@@ -757,24 +757,30 @@ def main(query, configure):
         # Get full response and commands
         full_response, commands = get_command_suggestion(client, model, full_query)
         
-        # Display the full response (including reasoning)
-        console.print("\n[cyan]AI Response:[/cyan]")
-        console.print(full_response)
-        console.print()  # Empty line
+        # Extract reasoning (everything before commands)
+        reasoning = full_response
+        for trigger in ['COMMAND:', 'EXECUTE:', 'RUN:', '```bash', '```sh', '```']:
+            if trigger.upper() in reasoning.upper():
+                # Split at first trigger word
+                parts = reasoning.split(trigger, 1)
+                if len(parts) > 0:
+                    reasoning = parts[0].strip()
+                break
+        
+        # Display reasoning
+        console.print("\n[cyan]Command Reasoning:[/cyan]")
+        console.print(reasoning)
+        console.print()
         
         if not commands:
             console.print("[yellow]No commands found in response. The AI may have only provided reasoning.[/yellow]")
             return
         
         # Display commands to be executed
-        if len(commands) == 1:
-            console.print("[green]Command to execute:[/green]")
-            console.print(f"[yellow]{commands[0]}[/yellow]\n")
-        else:
-            console.print(f"[green]Commands to execute ({len(commands)}):[/green]")
-            for i, cmd in enumerate(commands, 1):
-                console.print(f"[yellow]{i}. {cmd}[/yellow]")
-            console.print()
+        console.print(f"[green]Commands to Execute ({len(commands)}):[/green]")
+        for i, cmd in enumerate(commands, 1):
+            console.print(f"[yellow]{cmd}[/yellow]")
+        console.print()
         
         # Ask for confirmation
         if Confirm.ask("Do you want to execute these command(s)?"):
