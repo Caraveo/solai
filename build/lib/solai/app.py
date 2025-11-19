@@ -726,7 +726,7 @@ def get_command_suggestion(client, model, query):
             messages=[
                 {
                     "role": "system", 
-                    "content": f"You are a CLI assistant for {os_type}. Provide your reasoning first, then put all commands to execute in a code block. Format: Provide reasoning, then use ```bash followed by the command(s) to execute, one per line, ending with ```. You can provide multiple commands for complex tasks. Ensure all commands are compatible with {os_type}."
+                    "content": f"You are a CLI assistant for {os_type}. Provide your reasoning first, explaining what the command(s) will do and why. Then put all commands to execute in a code block. Format: Provide reasoning (explaining what the commands do), then use ```bash followed by the command(s) to execute, one per line, ending with ```. You can provide multiple commands for complex tasks. Ensure all commands are compatible with {os_type}."
                 },
                 {"role": "user", "content": query}
             ]
@@ -843,10 +843,30 @@ def main(query, configure):
         if earliest_pos < len(reasoning):
             reasoning = reasoning[:earliest_pos].strip()
         
+        # Clean up reasoning - remove markdown headers and formatting
+        reasoning_lines = reasoning.split('\n')
+        cleaned_reasoning = []
+        for line in reasoning_lines:
+            line_stripped = line.strip()
+            # Skip markdown headers like **[Reasoning]**, [Reasoning], **Answer**, etc.
+            if (line_stripped.startswith('**') and line_stripped.endswith('**') and 
+                ('Reasoning' in line_stripped or 'Answer' in line_stripped or 'Command' in line_stripped)):
+                continue
+            if (line_stripped.startswith('[') and line_stripped.endswith(']') and 
+                ('Reasoning' in line_stripped or 'Answer' in line_stripped)):
+                continue
+            # Skip separator lines
+            if line_stripped.startswith('---') or line_stripped == '---':
+                continue
+            cleaned_reasoning.append(line)
+        
+        reasoning = '\n'.join(cleaned_reasoning).strip()
+        
         # Display reasoning
-        console.print("\n[cyan]Command Reasoning:[/cyan]")
-        console.print(reasoning)
-        console.print()
+        if reasoning:
+            console.print("\n[cyan]Command Reasoning:[/cyan]")
+            console.print(reasoning)
+            console.print()
         
         if not commands:
             console.print("[yellow]No commands found in response. The AI may have only provided reasoning.[/yellow]")
