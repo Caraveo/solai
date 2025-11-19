@@ -25,7 +25,7 @@ setup(
     },
     author="Jon Caraveo",
     author_email="jon@ziavision.com",
-    description="A CLI assistant powered by OpenAI",
+    description="A CLI assistant powered by local AI (Msty Studio) or OpenAI",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/caraveo/solai",
@@ -39,5 +39,5 @@ setup(
         "Topic :: Utilities",
     ],
     python_requires=">=3.6",
-    keywords="cli, assistant, openai, gpt, command-line",
+    keywords="cli, assistant, openai, gpt, command-line, local-ai, msty-studio, mistral",
 ) 

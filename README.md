@@ -1,6 +1,6 @@
 # Solai - Your Smart CLI Assistant
 
-Solai is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It uses OpenAI's GPT to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
+Solai is an AI-powered command-line interface assistant that helps you find and execute the right commands for your tasks. It supports both local AI (via Msty Studio) and cloud AI (OpenAI) to convert natural language queries into system commands, with built-in safety confirmations and OS-specific command generation.
 
 It came in a dream. "Thank you for this gift."
 
@@ -10,6 +10,8 @@ It came in a dream. "Thank you for this gift."
 - 💡 Command explanations for better understanding
 - ✅ Command confirmation before execution
 - 🔒 Secure API key storage
+- 🏠 **Local AI support via Msty Studio** - Run completely offline and private
+- ☁️ Cloud AI support via OpenAI
 - 💻 OS-specific command generation (macOS, Linux, Windows)
 - 🎨 Rich terminal output formatting
 
@@ -30,12 +32,34 @@ pip install -e .
 
 ## Quick Start
 
-1. First-time setup will prompt for your OpenAI API key
+### Using Local AI (Msty Studio) - Recommended
+
+1. **Install and start Msty Studio**
+   - Download Msty Studio from: https://msty.ai
+   - Launch Msty Studio and ensure it's running locally
+   - Msty Studio typically runs on `http://localhost:1234/v1`
+
+2. **First-time setup**
+   - Run any `sol` command to trigger the setup wizard
+   - Choose option 1 for "Local AI (Msty Studio)"
+   - Enter your Msty Studio API base URL (default: `http://localhost:1234/v1`)
+   - Enter your model name (default: `mistral`)
+   - Configuration will be saved to `~/.solai.env`
+
+3. **Run a command:**
+```bash
+sol find large files
+```
+
+### Using OpenAI Cloud
+
+1. **First-time setup**
+   - Run any `sol` command to trigger the setup wizard
+   - Choose option 2 for "OpenAI Cloud"
    - Get your API key from: https://platform.openai.com/api-keys
-   - The key will be securely stored in `~/.solai.env`
+   - Configuration will be securely stored in `~/.solai.env`
 
-2. Run a command:
-
+2. **Run a command:**
 ```bash
 sol find large files
 ```
@@ -80,7 +104,8 @@ pip install -e .
 ## Requirements
 
 - Python 3.6+
-- OpenAI API key
+- **For Local AI**: Msty Studio installed and running
+- **For Cloud AI**: OpenAI API key
 - Required packages:
   - click
   - python-dotenv
@@ -89,7 +114,24 @@ pip install -e .
 
 ## Configuration
 
-The OpenAI API key is stored in `~/.solai.env`. To update it, simply delete this file and run any sol command to trigger the setup process again.
+Configuration is stored in `~/.solai.env`. The setup wizard will guide you through the initial configuration.
+
+### Local AI Configuration (Msty Studio)
+```env
+AI_PROVIDER=local
+API_BASE_URL=http://localhost:1234/v1
+API_KEY=not-needed
+MODEL=mistral
+```
+
+### Cloud AI Configuration (OpenAI)
+```env
+AI_PROVIDER=openai
+API_KEY=your-api-key-here
+MODEL=gpt-3.5-turbo
+```
+
+To reconfigure, simply delete `~/.solai.env` and run any `sol` command to trigger the setup process again.
 
 ## Contributing
 
